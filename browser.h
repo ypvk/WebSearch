@@ -5,12 +5,15 @@
 
 class QWebView;
 class QLineEdit;
+class QUrl;
+class QMutex;
 
 class Browser : public QMainWindow
 {
     Q_OBJECT
 public:
     explicit Browser(QWidget *parent = 0);
+    ~Browser();
 
 protected slots:
 
@@ -29,13 +32,19 @@ protected slots:
      void removeInlineFrames();
      void removeObjectElements();
      void removeEmbeddedElements();
+     void openLink(const QUrl& url);
+     void loadUrl(const QUrl& url);
+     void onTimeOut();
 
  private:
      QString jQuery;
      QWebView *view;
      QLineEdit *locationEdit;
      QAction *rotateAction;
+     QTabWidget* tabwidget;
      int progress;
+     QMutex* mutex;
+     QList<int>* list;
 
 };
 

@@ -1,6 +1,8 @@
 #include "browser.h"
+#include "webpage.h"
 #include <QtGui>
 #include <QtWebKit>
+#include <QTabWidget>
 
 Browser::Browser(QWidget *parent) :
         QMainWindow(parent)
@@ -12,14 +14,30 @@ Browser::Browser(QWidget *parent) :
     file.close();
     progress = 0;
 
+    mutex = new QMutex;
+    list = new QList<int>();
+
+    tabwidget = new QTabWidget(this);
+
     QNetworkProxyFactory::setUseSystemConfiguration(true);
 
     view = new QWebView(this);
+    tabwidget->addTab((QWidget*)view, tr("main view"));
+    WebPage* webPage = new WebPage(view);
+    view->setPage(webPage);
+    QObject::connect(webPage, SIGNAL(loadLink(QUrl)), this, SLOT(loadUrl(QUrl)));
+    QObject::connect(webPage, SIGNAL(openLink(QUrl)), this, SLOT(openLink(QUrl)));
+//    view->page()->setContextMenuPolicy(Qt::NoContextMenu);
+
     view->load(QUrl("http://www.baidu.com"));
+
     connect(view, SIGNAL(loadFinished(bool)), SLOT(adjustLocation()));
     connect(view, SIGNAL(titleChanged(QString)), SLOT(adjustTitle()));
     connect(view, SIGNAL(loadProgress(int)), SLOT(setProgress(int)));
     connect(view, SIGNAL(loadFinished(bool)), SLOT(finishLoading(bool)));
+
+//    connect(view, SIGNAL(linkClicked(QUrl)), this, SLOT(onLinkUrlClicked(QUrl)));
+//    connect(view->pageAction(QWebPage::OpenLinkInNewWindow), SIGNAL(triggered()), this, SLOT(onLinkUrlClicked(QUrl)));
 
     locationEdit = new QLineEdit(this);
     locationEdit->setSizePolicy(QSizePolicy::Expanding, locationEdit->sizePolicy().verticalPolicy());
@@ -47,13 +65,10 @@ Browser::Browser(QWidget *parent) :
     effectMenu->addAction(rotateAction);
 
     QMenu *toolsMenu = menuBar()->addMenu(tr("&Tools"));
-    toolsMenu->addAction(tr("Remove GIF images"), this, SLOT(removeGifImages()));
-    toolsMenu->addAction(tr("Remove all inline frames"), this, SLOT(removeInlineFrames()));
-    toolsMenu->addAction(tr("Remove all object elements"), this, SLOT(removeObjectElements()));
-    toolsMenu->addAction(tr("Remove all embedded elements"), this, SLOT(removeEmbeddedElements()));
 
-    setCentralWidget(view);
+    setCentralWidget(tabwidget);
     setUnifiedTitleAndToolBarOnMac(true);
+
 }
 void Browser::viewSource()
 {
@@ -106,8 +121,13 @@ void Browser::finishLoading(bool)
     // view->page()->mainFrame()->evaluateJavaScript(jQuery);
 
     rotateImages(rotateAction->isChecked());
-    view->page()->mainFrame()->evaluateJavaScript("alert(document.getElementById('dw').value)");
+//    view->page()->mainFrame()->evaluateJavaScript("alert(document.getElementById('dw').value)");
     view->page()->mainFrame()->evaluateJavaScript("$('#su').click()");
+    QTime t;
+    t.start();
+    while(t.elapsed()<2000)
+        QCoreApplication::processEvents();
+    view->page()->mainFrame()->evaluateJavaScript("$('a', 'h3.t').find('em').click()");
 }
 void Browser::highlightAllLinks()
 {
@@ -146,4 +166,38 @@ void Browser::removeEmbeddedElements()
 {
     QString code = "$('embed').remove()";
     view->page()->mainFrame()->evaluateJavaScript(code);
+}
+void Browser::openLink(const QUrl &url)
+{
+    QWebView* m_webView = new QWebView(this);
+    WebPage* m_webPage = new WebPage(m_webView);
+    m_webView->setPage(m_webPage);
+    m_webView->load(url);
+    int index = tabwidget->addTab((QWidget*)m_webView, tr("triger view"));
+    list->append(index);
+    QTimer::singleShot(3000, this, SLOT(onTimeOut()));
+    tabwidget->setCurrentIndex(index);
+}
+
+void Browser::loadUrl(const QUrl &url)
+{
+    view->load(url);
+}
+
+void Browser::onTimeOut()
+{
+    mutex->lock();
+    int index = list->first();
+    list->removeFirst();
+    QWidget* webView = tabwidget->widget(index);
+    webView->close();
+    delete webView;
+    tabwidget->removeTab(index);
+    mutex->unlock();
+}
+
+Browser::~Browser()
+{
+    delete mutex;
+    delete list;
 }
