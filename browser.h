@@ -35,11 +35,13 @@ protected slots:
      void openLink(const QUrl& url);
      void loadUrl(const QUrl& url);
      void onTimeOut();
+     void startSearch();
 
  private:
      QString jQuery;
      QWebView *view;
      QLineEdit *locationEdit;
+     QLineEdit *keyWordEdit;
      QAction *rotateAction;
      QTabWidget* tabwidget;
      int progress;

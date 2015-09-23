@@ -13,11 +13,13 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     browser.cpp \
-    webpage.cpp
+    webpage.cpp \
+    commonutils.cpp
 
 HEADERS  += mainwindow.h \
     browser.h \
-    webpage.h
+    webpage.h \
+    commonutils.h
 
 FORMS    += mainwindow.ui
 

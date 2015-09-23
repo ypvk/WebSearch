@@ -1,5 +1,6 @@
 #include "browser.h"
 #include "webpage.h"
+#include "commonutils.h"
 #include <QtGui>
 #include <QtWebKit>
 #include <QTabWidget>
@@ -27,19 +28,13 @@ Browser::Browser(QWidget *parent) :
     view->setPage(webPage);
     QObject::connect(webPage, SIGNAL(loadLink(QUrl)), this, SLOT(loadUrl(QUrl)));
     QObject::connect(webPage, SIGNAL(openLink(QUrl)), this, SLOT(openLink(QUrl)));
-//    view->page()->setContextMenuPolicy(Qt::NoContextMenu);
-
-    view->load(QUrl("http://www.baidu.com"));
 
     connect(view, SIGNAL(loadFinished(bool)), SLOT(adjustLocation()));
     connect(view, SIGNAL(titleChanged(QString)), SLOT(adjustTitle()));
     connect(view, SIGNAL(loadProgress(int)), SLOT(setProgress(int)));
     connect(view, SIGNAL(loadFinished(bool)), SLOT(finishLoading(bool)));
 
-//    connect(view, SIGNAL(linkClicked(QUrl)), this, SLOT(onLinkUrlClicked(QUrl)));
-//    connect(view->pageAction(QWebPage::OpenLinkInNewWindow), SIGNAL(triggered()), this, SLOT(onLinkUrlClicked(QUrl)));
-
-    locationEdit = new QLineEdit(this);
+    locationEdit = new QLineEdit();
     locationEdit->setSizePolicy(QSizePolicy::Expanding, locationEdit->sizePolicy().verticalPolicy());
     connect(locationEdit, SIGNAL(returnPressed()), SLOT(changeLocation()));
     QToolBar *toolBar = addToolBar(tr("Navigation"));
@@ -48,6 +43,14 @@ Browser::Browser(QWidget *parent) :
     toolBar->addAction(view->pageAction(QWebPage::Reload));
     toolBar->addAction(view->pageAction(QWebPage::Stop));
     toolBar->addWidget(locationEdit);
+    toolBar->addSeparator();
+
+    keyWordEdit = new QLineEdit(this);
+    keyWordEdit->setSizePolicy(QSizePolicy::Expanding, locationEdit->sizePolicy().verticalPolicy());
+    keyWordEdit->setMaximumWidth(100);
+    connect(keyWordEdit, SIGNAL(returnPressed()), this, SLOT(startSearch()));
+//    toolBarKeyWord->addWidget(keyWordEdit);
+    toolBar->addWidget(keyWordEdit);
 
     QMenu *viewMenu = menuBar()->addMenu(tr("&View"));
     QAction* viewSourceAction = new QAction("Page Source", this);
@@ -68,6 +71,9 @@ Browser::Browser(QWidget *parent) :
 
     setCentralWidget(tabwidget);
     setUnifiedTitleAndToolBarOnMac(true);
+
+    view->load(QUrl("http://www.baidu.com"));
+    keyWordEdit->setEnabled(false);
 
 }
 void Browser::viewSource()
@@ -98,6 +104,7 @@ void Browser::changeLocation()
     QUrl url = QUrl(locationEdit->text());
     view->load(url);
     view->setFocus();
+    keyWordEdit->setEnabled(false);
 }
 void Browser::adjustTitle()
 {
@@ -117,17 +124,15 @@ void Browser::finishLoading(bool)
 {
     progress = 100;
     adjustTitle();
-    view->page()->mainFrame()->evaluateJavaScript("$('input#kw').val('12231')");
-    // view->page()->mainFrame()->evaluateJavaScript(jQuery);
+//    view->page()->mainFrame()->evaluateJavaScript("$('input#kw').val('12231')");
+    view->page()->mainFrame()->evaluateJavaScript(jQuery);
 
     rotateImages(rotateAction->isChecked());
 //    view->page()->mainFrame()->evaluateJavaScript("alert(document.getElementById('dw').value)");
-    view->page()->mainFrame()->evaluateJavaScript("$('#su').click()");
-    QTime t;
-    t.start();
-    while(t.elapsed()<2000)
-        QCoreApplication::processEvents();
-    view->page()->mainFrame()->evaluateJavaScript("$('a', 'h3.t').find('em').click()");
+//    view->page()->mainFrame()->evaluateJavaScript("$('#su').click()");
+
+//    view->page()->mainFrame()->evaluateJavaScript("$('a', 'h3.t').find('em').click()");
+    keyWordEdit->setEnabled(true);
 }
 void Browser::highlightAllLinks()
 {
@@ -182,6 +187,7 @@ void Browser::openLink(const QUrl &url)
 void Browser::loadUrl(const QUrl &url)
 {
     view->load(url);
+    keyWordEdit->setEnabled(false);
 }
 
 void Browser::onTimeOut()
@@ -194,6 +200,19 @@ void Browser::onTimeOut()
     delete webView;
     tabwidget->removeTab(index);
     mutex->unlock();
+}
+
+void Browser::startSearch()
+{
+    QString keyWord = keyWordEdit->text();
+    //start search the key word
+    QString js = QString("$('input#kw').val('%1')").arg(keyWord);
+    view->page()->mainFrame()->evaluateJavaScript(js);
+    CommonUtils::sleep(1000);
+    view->page()->mainFrame()->evaluateJavaScript("$('#su').click()");
+    CommonUtils::sleep(7000);
+    view->page()->mainFrame()->evaluateJavaScript("$('em', 'h3.t').click()");
+    view->page()->mainFrame()->evaluateJavaScript("alert($('em', 'h3.t').html())");
 }
 
 Browser::~Browser()
