@@ -12,3 +12,8 @@ void CommonUtils::sleep(long time)
     while(t.elapsed()<2000)
         QCoreApplication::processEvents();
 }
+
+int CommonUtils::rand(long n) {
+//    qsrand(time(NULL));
+    return qrand() % n;
+}

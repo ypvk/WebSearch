@@ -211,12 +211,33 @@ void Browser::startSearch()
     CommonUtils::sleep(1000);
     view->page()->mainFrame()->evaluateJavaScript("$('#su').click()");
     CommonUtils::sleep(7000);
-    view->page()->mainFrame()->evaluateJavaScript("$('em', 'h3.t').click()");
-    view->page()->mainFrame()->evaluateJavaScript("alert($('em', 'h3.t').html())");
+//    view->page()->mainFrame()->evaluateJavaScript("$('em', 'h3.t').click()");
+//    view->page()->mainFrame()->evaluateJavaScript("alert($('em', 'h3.t').html())");
+    hrefClick();
 }
 
 Browser::~Browser()
 {
     delete mutex;
     delete list;
+}
+
+void Browser::hrefClick()
+{
+    QWebElementCollection elements = view->page()->mainFrame()->findAllElements(".c-container .t a[href]");
+    int index = CommonUtils::rand(elements.count());
+    qDebug() << "select element " << index;
+    QWebElement element = elements[index];
+    qDebug() << "click element " << element.toPlainText();
+    QWebFrame* frame = view->page()->mainFrame();
+    qDebug() << element.toPlainText();
+    const QPoint elemPos=element.geometry().center();
+    QPoint scrollPosition = QPoint(0, elemPos.y() - 100);
+    frame->setScrollPosition(scrollPosition);
+    QPoint const scrollPos=frame->scrollPosition();
+
+    QMouseEvent * const impossibleMousePress = new QMouseEvent(QEvent::MouseButtonPress,elemPos-scrollPos,Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
+    QMouseEvent * const impossibleMouseRelease = new QMouseEvent(QEvent::MouseButtonRelease,elemPos-scrollPos,Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
+    QApplication::postEvent(view,impossibleMousePress);
+    QApplication::postEvent(view,impossibleMouseRelease);
 }

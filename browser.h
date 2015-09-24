@@ -36,6 +36,8 @@ protected slots:
      void loadUrl(const QUrl& url);
      void onTimeOut();
      void startSearch();
+private:
+     void hrefClick();
 
  private:
      QString jQuery;

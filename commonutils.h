@@ -5,6 +5,7 @@ class CommonUtils
 {
 public:
     static void sleep(long time);
+    static int rand(long n);
 private:
     CommonUtils();
 };
