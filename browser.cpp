@@ -1,5 +1,6 @@
 #include "browser.h"
 #include "webpage.h"
+#include "networkcookiejar.h"
 #include "commonutils.h"
 #include <QtGui>
 #include <QtWebKit>
@@ -8,6 +9,7 @@
 Browser::Browser(QWidget *parent) :
         QMainWindow(parent)
 {
+    shouldBack = false;
     QFile file;
     file.setFileName(":/jquery.min.js");
     file.open(QIODevice::ReadOnly);
@@ -22,10 +24,14 @@ Browser::Browser(QWidget *parent) :
 
     QNetworkProxyFactory::setUseSystemConfiguration(true);
 
+    cookieJar = new NetWorkCookieJar(this);
+
     view = new QWebView(this);
     tabwidget->addTab((QWidget*)view, tr("main view"));
     WebPage* webPage = new WebPage(view);
     view->setPage(webPage);
+    view->page()->networkAccessManager()->setCookieJar(cookieJar);
+
     QObject::connect(webPage, SIGNAL(loadLink(QUrl)), this, SLOT(loadUrl(QUrl)));
     QObject::connect(webPage, SIGNAL(openLink(QUrl)), this, SLOT(openLink(QUrl)));
 
@@ -71,6 +77,8 @@ Browser::Browser(QWidget *parent) :
 
     setCentralWidget(tabwidget);
     setUnifiedTitleAndToolBarOnMac(true);
+
+    connect(this, SIGNAL(searchFinished()), this, SLOT(onSearchFinished()));
 
     view->load(QUrl("http://www.baidu.com"));
     keyWordEdit->setEnabled(false);
@@ -124,14 +132,8 @@ void Browser::finishLoading(bool)
 {
     progress = 100;
     adjustTitle();
-//    view->page()->mainFrame()->evaluateJavaScript("$('input#kw').val('12231')");
     view->page()->mainFrame()->evaluateJavaScript(jQuery);
 
-    rotateImages(rotateAction->isChecked());
-//    view->page()->mainFrame()->evaluateJavaScript("alert(document.getElementById('dw').value)");
-//    view->page()->mainFrame()->evaluateJavaScript("$('#su').click()");
-
-//    view->page()->mainFrame()->evaluateJavaScript("$('a', 'h3.t').find('em').click()");
     keyWordEdit->setEnabled(true);
 }
 void Browser::highlightAllLinks()
@@ -180,7 +182,7 @@ void Browser::openLink(const QUrl &url)
     m_webView->load(url);
     int index = tabwidget->addTab((QWidget*)m_webView, tr("triger view"));
     list->append(index);
-    QTimer::singleShot(3000, this, SLOT(onTimeOut()));
+    QTimer::singleShot(5000, this, SLOT(onTabTimeOut()));
     tabwidget->setCurrentIndex(index);
 }
 
@@ -188,9 +190,12 @@ void Browser::loadUrl(const QUrl &url)
 {
     view->load(url);
     keyWordEdit->setEnabled(false);
+    if (shouldBack) {
+        QTimer::singleShot(5000, this, SLOT(onLinkTimeOut()));
+    }
 }
 
-void Browser::onTimeOut()
+void Browser::onTabTimeOut()
 {
     mutex->lock();
     int index = list->first();
@@ -200,9 +205,28 @@ void Browser::onTimeOut()
     delete webView;
     tabwidget->removeTab(index);
     mutex->unlock();
+    emit searchFinished();
+}
+
+void Browser::onLinkTimeOut()
+{
+    view->back();
+    CommonUtils::sleep(3000);
+    view->back();
+    shouldBack = false;
+    emit searchFinished();
 }
 
 void Browser::startSearch()
+{
+   QString url = locationEdit->text();
+   if (url.startsWith(tr("http://m.baidu.com")))
+       startSearchForMBaidu();
+   else if (url.startsWith("https://www.baidu.com"))
+       startSearchForBaidu();
+}
+
+void Browser::startSearchForBaidu()
 {
     QString keyWord = keyWordEdit->text();
     //start search the key word
@@ -211,9 +235,21 @@ void Browser::startSearch()
     CommonUtils::sleep(1000);
     view->page()->mainFrame()->evaluateJavaScript("$('#su').click()");
     CommonUtils::sleep(7000);
-//    view->page()->mainFrame()->evaluateJavaScript("$('em', 'h3.t').click()");
-//    view->page()->mainFrame()->evaluateJavaScript("alert($('em', 'h3.t').html())");
     hrefClick();
+}
+
+void Browser::startSearchForMBaidu()
+{
+    QString keyWord = keyWordEdit->text();
+    QWebElement element = view->page()->mainFrame()->findFirstElement("input[type='text']");
+    element.setAttribute("value", keyWord);
+    CommonUtils::sleep(2000);
+    element = view->page()->mainFrame()->findFirstElement("input[type=submit]");
+    qDebug() << element.geometry().center();
+    QPoint elemPos = element.geometry().center();
+    buttonClick(elemPos);
+    CommonUtils::sleep(7000);
+    mHrefClick();
 }
 
 Browser::~Browser()
@@ -236,8 +272,62 @@ void Browser::hrefClick()
     frame->setScrollPosition(scrollPosition);
     QPoint const scrollPos=frame->scrollPosition();
 
-    QMouseEvent * const impossibleMousePress = new QMouseEvent(QEvent::MouseButtonPress,elemPos-scrollPos,Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
-    QMouseEvent * const impossibleMouseRelease = new QMouseEvent(QEvent::MouseButtonRelease,elemPos-scrollPos,Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
+    buttonClick(elemPos-scrollPos);
+}
+void Browser::mHrefClick()
+{
+    QWebElementCollection elements = view->page()->mainFrame()->findAllElements(".resitem a[href]");
+    int index = CommonUtils::rand(elements.count());
+    qDebug() << "select element " << index;
+    QWebElement element = elements[index];
+    qDebug() << "click element " << element.toPlainText();
+    QWebFrame* frame = view->page()->mainFrame();
+    qDebug() << element.toPlainText();
+    const QPoint elemPos=element.geometry().center();
+    QPoint scrollPosition = QPoint(0, elemPos.y() - 100);
+    frame->setScrollPosition(scrollPosition);
+    QPoint const scrollPos=frame->scrollPosition();
+
+    buttonClick(elemPos-scrollPos);
+    shouldBack = true;
+
+}
+
+void Browser::buttonClick(const QPoint& pos)
+{
+    QMouseEvent * const impossibleMousePress = new QMouseEvent(QEvent::MouseButtonPress,pos,Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
+    QMouseEvent * const impossibleMouseRelease = new QMouseEvent(QEvent::MouseButtonRelease,pos,Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
     QApplication::postEvent(view,impossibleMousePress);
     QApplication::postEvent(view,impossibleMouseRelease);
 }
+
+void Browser::clearCookie()
+{
+    QList<QNetworkCookie>  empty = QList<QNetworkCookie>();
+    cookieJar->setCookies(empty);
+}
+
+void Browser::search(const QList<QString> &urls, const QList<QString> keyWords)
+{
+    this->urls = QList<QString>(urls);
+    this->keyWords = QList<QString>(keyWords);
+    emit searchFinished();
+}
+void Browser::onSearchFinished()
+{
+    clearCookie();
+    if (urls.isEmpty() || keyWords.isEmpty()) return;
+    //not empty search again
+    QString url = urls.first();
+    urls.removeFirst();
+    qDebug() << "urls size " << urls.count();
+    QString keyWord = keyWords.first();
+    keyWords.removeFirst();
+    qDebug() << "keyWords size " << keyWords.count();
+    view->load(url);
+    keyWordEdit->setEnabled(true);
+    keyWordEdit->setText(keyWord);
+    CommonUtils::sleep(5000);
+    startSearch();
+}
+

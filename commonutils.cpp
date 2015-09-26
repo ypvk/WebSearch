@@ -14,6 +14,6 @@ void CommonUtils::sleep(long time)
 }
 
 int CommonUtils::rand(long n) {
-//    qsrand(time(NULL));
+    qsrand(time(NULL));
     return qrand() % n;
 }

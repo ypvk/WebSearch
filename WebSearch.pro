@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui webkit network
+QT       += core gui webkit network sql
 
 TARGET = WebSearch
 TEMPLATE = app
@@ -14,12 +14,16 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     browser.cpp \
     webpage.cpp \
-    commonutils.cpp
+    commonutils.cpp \
+    networkcookiejar.cpp \
+    dbutil.cpp
 
 HEADERS  += mainwindow.h \
     browser.h \
     webpage.h \
-    commonutils.h
+    commonutils.h \
+    networkcookiejar.h \
+    dbutil.h
 
 FORMS    += mainwindow.ui
 

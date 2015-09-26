@@ -6,11 +6,8 @@
 namespace Ui {
     class MainWindow;
 }
-
-class QWebView;
-class QLineEdit;
-class QPushButton;
-class QUrl;
+class QTableView;
+class QSqlTableModel;
 
 class MainWindow : public QMainWindow
 {
@@ -19,20 +16,21 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-public slots:
-    void onButtonClicked();
-    void onPageLoadFinished();
-    void onUrlChanged(const QUrl& url);
 private:
     void setupGui();
     void setupAction();
+    void setupModel();
 private:
     Ui::MainWindow *ui;
-    QWebView* mWebView;
-    QLineEdit* mLineEdit;
-    QPushButton* mPushButton;
-    QWidget* mMainWidget;
+    QTabWidget* mainWidget;
 
+    QTableView* searchEngineView;
+    QTableView* keyWordView;
+    QTableView* clickView;
+
+    QSqlTableModel* searchEngineModel;
+    QSqlTableModel* keyWordModel;
+    QSqlTableModel* clickModel;
 };
 
 #endif // MAINWINDOW_H

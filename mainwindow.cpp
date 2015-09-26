@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "dbutil.h"
 #include <QtGui/QLineEdit>
 #include <QtGui/QPushButton>
 #include <QtWebKit/QWebView>
@@ -7,6 +8,8 @@
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QVBoxLayout>
 #include <QtCore/QString>
+#include <QtSql>
+#include <QtGui>
 #include<QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -26,43 +29,50 @@ MainWindow::~MainWindow()
 
 void MainWindow::setupGui()
 {
-    mMainWidget = new QWidget(this);
-    mLineEdit = new QLineEdit(this);
-    mPushButton = new QPushButton(tr("enter"), this);
-    mWebView = new QWebView(this);
+    mainWidget = new QTabWidget(this);
+    this->setCentralWidget(mainWidget);
 
-    QHBoxLayout* layout1 = new QHBoxLayout();
-    QVBoxLayout* layout2 = new QVBoxLayout(mMainWidget);
+    searchEngineView = new QTableView(this);
+    keyWordView = new QTableView(this);
+    clickView = new QTableView(this);
 
-    layout1->addWidget(mLineEdit);
-    layout1->addWidget(mPushButton);
-
-    layout2->addLayout(layout1);
-    layout2->addWidget(mWebView);
-
-    mMainWidget->setLayout(layout1);
-    this->setCentralWidget(mMainWidget);
+    mainWidget->addTab(searchEngineView, tr("search engine"));
+    mainWidget->addTab(keyWordView, tr("key words"));
+    mainWidget->addTab(clickView, tr("clicks"));
 }
 
 void MainWindow::setupAction()
 {
-    connect(mPushButton, SIGNAL(clicked()), this, SLOT(onButtonClicked()));
-    connect(mWebView, SIGNAL(loadFinished(bool)), this, SLOT(onPageLoadFinished()));
-    connect(mWebView, SIGNAL(urlChanged(QUrl)), this, SLOT(onUrlChanged(QUrl)));
-}
-
-void MainWindow::onButtonClicked()
-{
-    const QString url = mLineEdit->text();
-    mWebView->load(QUrl(url));
 
 }
-void MainWindow::onPageLoadFinished()
+
+void MainWindow::setupModel()
 {
-    mWebView->page()->mainFrame()->evaluateJavaScript("$('#kw').val('12231')");
-}
-void MainWindow::onUrlChanged(const QUrl& url)
-{
-   mLineEdit->setText(url.toString());
-   QMessageBox::information(this, "show url", url.toString());
+    QSqlDatabase db = DBUtil::getDB();
+    searchEngineModel = new QSqlTableModel(this, db);
+    searchEngineModel->setTable(DBUtil::SEARCH_ENGINE_NAME);
+    searchEngineModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
+    searchEngineModel->select();
+    searchEngineModel->setHeaderData(0, Qt::Horizontal, QObject::tr("ID"));
+    searchEngineModel->setHeaderData(1, Qt::Horizontal, QObject::tr("Name"));
+    searchEngineModel->setHeaderData(2, Qt::Horizontal, QObject::tr("Url"));
+    searchEngineView->setModel(searchEngineModel);
+
+    keyWordModel = new QSqlTableModel(this, db);
+    keyWordModel->setTable(DBUtil::KEY_WORD_NAME);
+    keyWordModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
+    keyWordModel->select();
+    keyWordModel->setHeaderData(0, Qt::Horizontal, QObject::tr("ID"));
+    keyWordModel->setHeaderData(1, Qt::Horizontal, QObject::tr("Name"));
+    keyWordView->setModel(keyWordModel);
+
+    clickModel = new QSqlTableModel(this, db);
+    clickModel->setTable(DBUtil::CLICK_TABLE_NAME);
+    clickModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
+    clickModel->select();
+    clickModel->setHeaderData(0, Qt::Horizontal, QObject::tr("search engine id"));
+    clickModel->setHeaderData(1, Qt::Horizontal, QObject::tr("key word id"));
+    clickModel->setHeaderData(2, Qt::Horizontal, QObject::tr("click times"));
+    clickView->setModel(clickModel);
+
 }
