@@ -191,7 +191,7 @@ void Browser::loadUrl(const QUrl &url)
     view->load(url);
     keyWordEdit->setEnabled(false);
     if (shouldBack) {
-        QTimer::singleShot(5000, this, SLOT(onLinkTimeOut()));
+        QTimer::singleShot(7000, this, SLOT(onLinkTimeOut()));
     }
 }
 

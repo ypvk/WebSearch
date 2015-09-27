@@ -15,6 +15,7 @@ public:
     static void clearTables();
     static void initValues();
     static void printInfo(const QSqlQuery& query, bool result);
+    static void test();
 private:
     DBUtil();
 public:
@@ -28,6 +29,7 @@ public:
     static const QString DROP_SEARCH_ENGINE_SQL;
     static const QString DROP_KEYWORD_SQL;
     static const QString DROP_CLICK_SQL;
+    static const QString CONNECTION_NAME;
 };
 
 #endif // DBUTIL_H

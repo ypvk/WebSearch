@@ -19,12 +19,14 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     setupGui();
     setupAction();
+    setupModel();
 
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+
 }
 
 void MainWindow::setupGui()

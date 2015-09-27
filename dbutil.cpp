@@ -1,7 +1,7 @@
 #include "dbutil.h"
 #include <QtSql>
 
-const QString DBUtil::DBUtil::DB_NAME = "./websearch.db";
+const QString DBUtil::DBUtil::DB_NAME = "websearch.db";
 const QString DBUtil::SEARCH_ENGINE_NAME = "search_engine";
 const QString DBUtil::KEY_WORD_NAME = "key_word";
 const QString DBUtil::CLICK_TABLE_NAME = "click";
@@ -11,6 +11,7 @@ const QString DBUtil::CREATE_CLICK_SQL = "create table click(search_engine_id in
 const QString DBUtil::DROP_SEARCH_ENGINE_SQL = "drop table search_engine";
 const QString DBUtil::DROP_KEYWORD_SQL = "drop table key_word";
 const QString DBUtil::DROP_CLICK_SQL = "drop table click";
+const QString DBUtil::CONNECTION_NAME = "my_sqlite_connection";
 
 DBUtil::DBUtil()
 {
@@ -18,10 +19,22 @@ DBUtil::DBUtil()
 
 QSqlDatabase DBUtil::getDB()
 {
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName(DB_NAME);
-    db.open();
-    return db;
+    if (!QSqlDatabase::contains(CONNECTION_NAME)) {
+        QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", CONNECTION_NAME);
+        db.setDatabaseName(DB_NAME);
+        db.open();
+        return db;
+    }
+    else {
+        QSqlDatabase db = QSqlDatabase::database(CONNECTION_NAME);
+        if (db.isValid() && db.isOpen()){
+            return db;
+        }else
+        {
+            db.open();
+            return db;
+        }
+    }
 }
 
 void DBUtil::closeDB(QSqlDatabase db)
@@ -77,25 +90,34 @@ void DBUtil::initValues()
     if (db.isOpen()) {
         QSqlQuery query = getQuery(db);
         bool result = query.prepare("insert into search_engine(name, url) values(?,?)");
-        query.addBindValue("百度");
-        query.addBindValue("http://www.baidu.com");
-        result = query.exec();
-        db.commit();
-        printInfo(query, result);
-        result = query.prepare("insert into search_engine(name, url) values(?,?)");
-        query.addBindValue("手机百度");
-        query.addBindValue("http://m.baidu.com");
-        result = query.exec();
-        db.commit();
+        QVariantList nameList;
+        nameList << QObject::tr("百度") << QObject::tr("手机百度");
+        QVariantList urlList;
+        urlList << QObject::tr("http://www.baidu.com") << QObject::tr("http://m.baidu.com");
+        query.addBindValue(nameList);
+        query.addBindValue(urlList);
+        result = query.execBatch();
         printInfo(query, result);
         //keyword
+        query = getQuery(db);
         result = query.prepare("insert into key_word(name) values(?)");
-        query.addBindValue("musper");
+        query.bindValue(0, "musper");
         query.exec();
         printInfo(query, result);
         db.commit();
         closeDB(db);
     }else {
         qDebug() << "error db is not open";
+    }
+}
+void DBUtil::test()
+{
+    QSqlDatabase db = getDB();
+    QSqlQuery query = getQuery(db);
+    query.exec("select * from search_engine");
+    while(query.next()) {
+        qDebug() << query.value(0).toInt()
+                << "," << query.value(1).toString()
+                << "," << query.value(2).toString();
     }
 }
