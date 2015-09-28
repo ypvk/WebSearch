@@ -25,20 +25,20 @@ int main(int argc, char *argv[])
     qDebug() << "============end====================";
 #endif
 
-//    MainWindow w;
-//    w.show();
-    Browser w;
+    MainWindow w;
     w.show();
-    QList<QString> urls = QList<QString>();
-    QList<QString> keyWords = QList<QString>();
-//    for (int i = 0; i< 2; i++) {
-//        urls.append("http://www.baidu.com");
+//    Browser w;
+//    w.show();
+//    QList<QString> urls = QList<QString>();
+//    QList<QString> keyWords = QList<QString>();
+////    for (int i = 0; i< 2; i++) {
+////        urls.append("http://www.baidu.com");
+////        keyWords.append("musper");
+////    }
+//    for (int i = 0; i < 20; i++) {
+//        urls.append("http://m.baidu.com");
 //        keyWords.append("musper");
 //    }
-    for (int i = 0; i < 20; i++) {
-        urls.append("http://m.baidu.com");
-        keyWords.append("musper");
-    }
-    w.search(urls, keyWords);
+//    w.search(urls, keyWords);
     return a.exec();
 }

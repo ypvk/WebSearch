@@ -8,16 +8,21 @@ class QLineEdit;
 class QUrl;
 class QMutex;
 class NetWorkCookieJar;
+class UpdateInfo;
 
 class Browser : public QMainWindow
 {
     Q_OBJECT
 public:
     explicit Browser(QWidget *parent = 0);
-    void search(const QList<QString> & urls, const QList<QString> keyWords);
+    void search(const QList<QString>& engines, const QList<QString> & urls,
+                const QList<QString>& keyWords);
     ~Browser();
 signals:
      void searchFinished();
+     void updateClickInfo(const UpdateInfo& updateInfo);
+ public slots:
+     void stopSearch();
 protected slots:
      void adjustLocation();
      void changeLocation();
@@ -47,7 +52,7 @@ private:
      void mHrefClick();
      void buttonClick(const QPoint& pos);
      void clearCookie();
-
+     void baseHrefClick(const QString& lickItemSelector);
 
  private:
      QString jQuery;
@@ -62,8 +67,17 @@ private:
      bool shouldBack;
      NetWorkCookieJar* cookieJar;
      //value
+     QList<QString> engines;
      QList<QString> urls;
      QList<QString> keyWords;
+     //current
+     QString currentEngine;
+     QString currentUrl;
+     QString currentKeyWord;
+     QString currentLinkName;
+     QString currentLinkUrl;
+
+     bool isStop;
 };
 
 #endif // BROWSER_H

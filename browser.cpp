@@ -1,6 +1,7 @@
 #include "browser.h"
 #include "webpage.h"
 #include "networkcookiejar.h"
+#include "updateinfo.h"
 #include "commonutils.h"
 #include <QtGui>
 #include <QtWebKit>
@@ -82,6 +83,7 @@ Browser::Browser(QWidget *parent) :
 
     view->load(QUrl("http://www.baidu.com"));
     keyWordEdit->setEnabled(false);
+    isStop = true;
 
 }
 void Browser::viewSource()
@@ -191,7 +193,7 @@ void Browser::loadUrl(const QUrl &url)
     view->load(url);
     keyWordEdit->setEnabled(false);
     if (shouldBack) {
-        QTimer::singleShot(7000, this, SLOT(onLinkTimeOut()));
+        QTimer::singleShot(5000, this, SLOT(onLinkTimeOut()));
     }
 }
 
@@ -212,7 +214,6 @@ void Browser::onLinkTimeOut()
 {
     view->back();
     CommonUtils::sleep(3000);
-    view->back();
     shouldBack = false;
     emit searchFinished();
 }
@@ -260,27 +261,24 @@ Browser::~Browser()
 
 void Browser::hrefClick()
 {
-    QWebElementCollection elements = view->page()->mainFrame()->findAllElements(".c-container .t a[href]");
-    int index = CommonUtils::rand(elements.count());
-    qDebug() << "select element " << index;
-    QWebElement element = elements[index];
-    qDebug() << "click element " << element.toPlainText();
-    QWebFrame* frame = view->page()->mainFrame();
-    qDebug() << element.toPlainText();
-    const QPoint elemPos=element.geometry().center();
-    QPoint scrollPosition = QPoint(0, elemPos.y() - 100);
-    frame->setScrollPosition(scrollPosition);
-    QPoint const scrollPos=frame->scrollPosition();
-
-    buttonClick(elemPos-scrollPos);
+    baseHrefClick(".c-container .t a[href]");
 }
 void Browser::mHrefClick()
 {
-    QWebElementCollection elements = view->page()->mainFrame()->findAllElements(".resitem a[href]");
+    baseHrefClick(".resitem a[href]");
+    shouldBack = true;
+
+}
+
+void Browser::baseHrefClick(const QString &lickItemSelector)
+{
+    QWebElementCollection elements = view->page()->mainFrame()->findAllElements(lickItemSelector);
     int index = CommonUtils::rand(elements.count());
     qDebug() << "select element " << index;
     QWebElement element = elements[index];
     qDebug() << "click element " << element.toPlainText();
+    currentLinkName = element.toPlainText();
+    currentLinkUrl = element.attribute("href", "null");
     QWebFrame* frame = view->page()->mainFrame();
     qDebug() << element.toPlainText();
     const QPoint elemPos=element.geometry().center();
@@ -289,8 +287,6 @@ void Browser::mHrefClick()
     QPoint const scrollPos=frame->scrollPosition();
 
     buttonClick(elemPos-scrollPos);
-    shouldBack = true;
-
 }
 
 void Browser::buttonClick(const QPoint& pos)
@@ -307,16 +303,39 @@ void Browser::clearCookie()
     cookieJar->setCookies(empty);
 }
 
-void Browser::search(const QList<QString> &urls, const QList<QString> keyWords)
+void Browser::search(const QList<QString>& engines,
+                     const QList<QString> &urls,
+                     const QList<QString> &keyWords)
 {
+    this->engines = QList<QString>(engines);
     this->urls = QList<QString>(urls);
     this->keyWords = QList<QString>(keyWords);
+    this->currentEngine = "";
+    this->currentUrl = "";
+    this->currentKeyWord = "";
+    this->currentLinkName = "";
+    this->currentLinkUrl = "";
+
+    isStop = false;
     emit searchFinished();
 }
 void Browser::onSearchFinished()
 {
+    if (currentUrl != "") {//click successfull
+        UpdateInfo updateInfo(currentEngine,
+                              currentUrl,
+                              currentKeyWord,
+                              currentLinkName,
+                              currentLinkUrl);
+        emit updateClickInfo(updateInfo);
+    }
+
     clearCookie();
-    if (urls.isEmpty() || keyWords.isEmpty()) return;
+    if (isStop || urls.isEmpty() || keyWords.isEmpty())
+    {
+        isStop = true;
+        return;
+    }
     //not empty search again
     QString url = urls.first();
     urls.removeFirst();
@@ -324,6 +343,12 @@ void Browser::onSearchFinished()
     QString keyWord = keyWords.first();
     keyWords.removeFirst();
     qDebug() << "keyWords size " << keyWords.count();
+    QString engine = engines.first();
+    engines.removeFirst();
+    //set current
+    currentEngine = engine;
+    currentUrl = url;
+    currentKeyWord = keyWord;
     view->load(url);
     keyWordEdit->setEnabled(true);
     keyWordEdit->setText(keyWord);
@@ -331,3 +356,8 @@ void Browser::onSearchFinished()
     startSearch();
 }
 
+void Browser::stopSearch()
+{
+    isStop = true;
+    view->stop();
+}

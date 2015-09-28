@@ -16,14 +16,16 @@ SOURCES += main.cpp\
     webpage.cpp \
     commonutils.cpp \
     networkcookiejar.cpp \
-    dbutil.cpp
+    dbutil.cpp \
+    updateinfo.cpp
 
 HEADERS  += mainwindow.h \
     browser.h \
     webpage.h \
     commonutils.h \
     networkcookiejar.h \
-    dbutil.h
+    dbutil.h \
+    updateinfo.h
 
 FORMS    += mainwindow.ui
 
