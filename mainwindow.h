@@ -28,20 +28,16 @@ private:
     void setupAction();
     void setupModel();
     void setupConnection();
-    void startSearchJob();
+    void startSearchJob(int clickNum);
 public slots:
     void onJobStateChange();
     void onJobUpdate(const UpdateInfo& updateInfo);
+    void onConfigActionTrigger();
 private:
     Ui::MainWindow *ui;
-    QTabWidget* mainWidget;
 
-    QTableView* searchEngineView;
-    QTableView* keyWordView;
     QTableView* clickView;
 
-    QSqlTableModel* searchEngineModel;
-    QSqlTableModel* keyWordModel;
     QSqlTableModel* clickModel;
 
     QSplitter* splitter;
@@ -60,7 +56,10 @@ private:
     QLabel* clickUrlLabel;
     QLabel* clickUrlLabelValue;
 
-    QAction* jobStateAction;
+    QAction* startJobAction;
+    QAction* stopJobAction;
+    QAction* configAction;
+
     QToolBar* toolBar;
     bool isRunning;
 

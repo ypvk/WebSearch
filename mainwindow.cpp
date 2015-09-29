@@ -3,6 +3,8 @@
 #include "browser.h"
 #include "updateinfo.h"
 #include "dbutil.h"
+#include "jobparamdialog.h"
+#include "configdialog.h"
 #include <QtGui/QLineEdit>
 #include <QtGui/QPushButton>
 #include <QtWebKit/QWebView>
@@ -28,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete browser;
 
 }
 
@@ -41,18 +44,13 @@ void MainWindow::setupGui()
     splitter->addWidget(realTimeGroupBox);
     splitter->addWidget(infoGroupBox);
 
-    mainWidget = new QTabWidget(this);
+    clickView = new QTableView(this);
+    clickView->setEnabled(false);
+
     QVBoxLayout* layout1 = new QVBoxLayout;
-    layout1->addWidget(mainWidget);
+    layout1->addWidget(clickView);
     infoGroupBox->setLayout(layout1);
 
-    searchEngineView = new QTableView(this);
-    keyWordView = new QTableView(this);
-    clickView = new QTableView(this);
-
-    mainWidget->addTab(searchEngineView, tr("search engine"));
-    mainWidget->addTab(keyWordView, tr("key words"));
-    mainWidget->addTab(clickView, tr("clicks"));
 
     QGridLayout* layout2 = new QGridLayout;
     searchEngineLabel = new QLabel(tr("search engine"), this);
@@ -80,21 +78,36 @@ void MainWindow::setupGui()
 
     toolBar = this->addToolBar(tr("main tool bar"));
     //add browser
-    browser = new Browser(this);
+    browser = new Browser();
     isRunning = false;
     this->resize(700, 400);
 }
 
 void MainWindow::setupAction()
 {
-    jobStateAction = new QAction(tr("startJob"), this);
-    toolBar->addAction(jobStateAction);
+    startJobAction = new QAction(tr("startJob"), this);
+    stopJobAction = new QAction(tr("stopJob"), this);
+    configAction = new QAction(tr("config"), this);
+
+    stopJobAction->setEnabled(false);
+
+    toolBar->addAction(startJobAction);
+    toolBar->addAction(stopJobAction);
+    toolBar->addAction(configAction);
 }
 
 void MainWindow::setupConnection()
 {
-    connect(jobStateAction, SIGNAL(triggered()), this, SLOT(onJobStateChange()));
+    connect(startJobAction, SIGNAL(triggered()), this, SLOT(onJobStateChange()));
+    connect(stopJobAction, SIGNAL(triggered()), this, SLOT(onJobStateChange()));
     connect(browser, SIGNAL(updateClickInfo(UpdateInfo)), this, SLOT(onJobUpdate(UpdateInfo)));
+    connect(configAction, SIGNAL(triggered()), this, SLOT(onConfigActionTrigger()));
+}
+
+void MainWindow::onConfigActionTrigger()
+{
+    ConfigDialog dialog;
+    dialog.exec();
 }
 
 void MainWindow::onJobUpdate(const UpdateInfo &updateInfo)
@@ -111,40 +124,29 @@ void MainWindow::onJobStateChange()
 {
     if (isRunning == false)
     {
-        jobStateAction->setText(tr("stopJob"));
-        browser->show();
-        browser->move(this->pos() + QPoint(200, 200));
-        startSearchJob();
-        isRunning = true;
+        JobParamDialog dialog;
+        if (dialog.exec() == QDialog::Accepted) {
+            startJobAction->setEnabled(false);
+            browser->show();
+            browser->move(this->pos() + QPoint(200, 200));
+            startSearchJob(dialog.getClickNum());
+            isRunning = true;
+            stopJobAction->setEnabled(true);
+        }
+        else return;
     }else
     {
-        jobStateAction->setText(tr("startJob"));
+        stopJobAction->setEnabled(false);
         browser->stopSearch();
         browser->hide();
         isRunning = false;
+        startJobAction->setEnabled(true);
     }
 }
 
 void MainWindow::setupModel()
 {
     QSqlDatabase db = DBUtil::getDB();
-    searchEngineModel = new QSqlTableModel(this, db);
-    searchEngineModel->setTable(DBUtil::SEARCH_ENGINE_NAME);
-    searchEngineModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
-    searchEngineModel->select();
-    searchEngineModel->setHeaderData(0, Qt::Horizontal, QObject::tr("ID"));
-    searchEngineModel->setHeaderData(1, Qt::Horizontal, QObject::tr("Name"));
-    searchEngineModel->setHeaderData(2, Qt::Horizontal, QObject::tr("Url"));
-    searchEngineView->setModel(searchEngineModel);
-
-    keyWordModel = new QSqlTableModel(this, db);
-    keyWordModel->setTable(DBUtil::KEY_WORD_NAME);
-    keyWordModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
-    keyWordModel->select();
-    keyWordModel->setHeaderData(0, Qt::Horizontal, QObject::tr("ID"));
-    keyWordModel->setHeaderData(1, Qt::Horizontal, QObject::tr("Name"));
-    keyWordView->setModel(keyWordModel);
-
     clickModel = new QSqlTableModel(this, db);
     clickModel->setTable(DBUtil::CLICK_TABLE_NAME);
     clickModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
@@ -155,17 +157,17 @@ void MainWindow::setupModel()
     clickView->setModel(clickModel);
 
 }
-void MainWindow::startSearchJob()
+void MainWindow::startSearchJob(int clickNum)
 {
     QList<QString> engines = QList<QString>();
     QList<QString> urls = QList<QString>();
     QList<QString> keyWords = QList<QString>();
-    for (int i = 0; i< 5; i++) {
+    for (int i = 0; i< clickNum; i++) {
         engines.append("百度");
         urls.append("http://www.baidu.com");
         keyWords.append("musper");
     }
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < clickNum; i++) {
         engines.append("手机百度");
         urls.append("http://m.baidu.com");
         keyWords.append("musper");

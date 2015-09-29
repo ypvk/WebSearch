@@ -17,7 +17,9 @@ SOURCES += main.cpp\
     commonutils.cpp \
     networkcookiejar.cpp \
     dbutil.cpp \
-    updateinfo.cpp
+    updateinfo.cpp \
+    jobparamdialog.cpp \
+    configdialog.cpp
 
 HEADERS  += mainwindow.h \
     browser.h \
@@ -25,7 +27,9 @@ HEADERS  += mainwindow.h \
     commonutils.h \
     networkcookiejar.h \
     dbutil.h \
-    updateinfo.h
+    updateinfo.h \
+    jobparamdialog.h \
+    configdialog.h
 
 FORMS    += mainwindow.ui
 
