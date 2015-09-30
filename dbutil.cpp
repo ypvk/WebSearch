@@ -20,6 +20,9 @@ const QString DBUtil::DELETE_ENGINE_SQL = "delete from search_engine where id=?"
 const QString DBUtil::DELETE_KEY_WORDS_SQL = "delete from key_word where id=?";
 const QString DBUtil::QUERY_KEY_WORDS_SQL = "select name from key_word";
 const QString DBUtil::QUERY_SEARCH_ENGINE_SQL = "select name, url from search_engine";
+const QString DBUtil::EXISTS_CLICK_SQL = "select count(1) from click where engine_url=? and key_word=?";
+const QString DBUtil::INSERT_CLICK_SQL = "insert into click(engine_url, key_word, click_times) values(?,?,?)";
+const QString DBUtil::UPDATE_CLICK_SQL = "update click set click_times = click_times + 1 where where engine_url=? and key_word=?";
 
 DBUtil::DBUtil()
 {
@@ -203,4 +206,40 @@ bool DBUtil::deleteEngines(const QVariantList &ids)
 bool DBUtil::deleteKeyWords(const QVariantList &ids)
 {
     return deleteByIds(DELETE_KEY_WORDS_SQL, ids);
+}
+
+bool DBUtil::incWorkClick(const QString &keyWord, const QString &url)
+{
+    qDebug() << "inc click times:" << keyWord << " " << url;
+    QSqlDatabase db = getDB();
+    QSqlQuery query = getQuery(db);
+    bool result = query.prepare(EXISTS_CLICK_SQL);
+    query.bindValue(0, url);
+    query.bindValue(1, keyWord);
+    result = query.exec();
+    if (!result) {
+        printInfo(query, result);
+        return result;
+    }
+    int count = 0;
+    while (query.next()) {
+        count = query.value(0).toInt();
+    }
+    if (count == 0) {
+        query.prepare(INSERT_CLICK_SQL);
+        query.bindValue(0, url);
+        query.bindValue(1, keyWord);
+        query.bindValue(2, 1);
+        result = query.exec();
+        printInfo(query, result);
+        return result;
+    }
+    else {
+       query.prepare(UPDATE_CLICK_SQL);
+       query.bindValue(0, url);
+       query.bindValue(1, keyWord);
+       result = query.exec();
+       printInfo(query, result);
+       return result;
+    }
 }

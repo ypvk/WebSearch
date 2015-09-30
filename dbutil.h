@@ -25,6 +25,7 @@ public:
     static bool deleteEngines(const QVariantList& ids);
     static QList<QString> getKeyWords();
     static QList<EngineInfo> getEngineInfos();
+    static bool incWorkClick(const QString& keyWord, const QString& url);
     static void test();
 private:
     DBUtil();
@@ -47,6 +48,9 @@ public:
     static const QString DELETE_ENGINE_SQL;
     static const QString QUERY_KEY_WORDS_SQL;
     static const QString QUERY_SEARCH_ENGINE_SQL;
+    static const QString EXISTS_CLICK_SQL;
+    static const QString INSERT_CLICK_SQL;
+    static const QString UPDATE_CLICK_SQL;
 };
 
 #endif // DBUTIL_H

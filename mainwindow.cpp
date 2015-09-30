@@ -120,7 +120,15 @@ void MainWindow::onJobUpdate(const UpdateInfo &updateInfo)
     this->keyWordLabelValue->setText(updateInfo.keyWord);
     this->clickLinkLabelValue->setText(updateInfo.clickName);
     this->clickUrlLabelValue->setText(updateInfo.clickUrl);
-
+    bool result = DBUtil::incWorkClick(updateInfo.keyWord, updateInfo.engineUrl);
+    if (!result)
+    {
+        qDebug() << "error update";
+    }
+    else
+    {
+        clickModel->select();
+    }
 }
 
 void MainWindow::onJobStateChange()
