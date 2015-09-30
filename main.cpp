@@ -12,6 +12,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     //init codec
     QTextCodec *utg8TC = QTextCodec::codecForName("utf-8");
+//    QTextCodec *utg8TC = QTextCodec::codecForName("System");
     QTextCodec::setCodecForTr(utg8TC);
     QTextCodec::setCodecForLocale(utg8TC);
     QTextCodec::setCodecForCStrings(utg8TC);
@@ -24,7 +25,6 @@ int main(int argc, char *argv[])
     DBUtil::test();
     qDebug() << "============end====================";
 #endif
-
     MainWindow w;
     w.show();
 

@@ -16,9 +16,20 @@ class ConfigDialog : public QDialog
 public:
     explicit ConfigDialog(QWidget *parent = 0);
 private:
-     void setupGui();
-     void setupModel();
-     void setupConnection();
+    void setupGui();
+    void setupModel();
+    void setupConnection();
+    QString getFileName();
+    void showMessage(const QString& msg);
+    void showSuccessMessage(const QString& msg);
+protected slots:
+    void onLoadForSearchButtonClicked();
+    void onLoadForKeyWordButtonClicked();
+    void onRemoveSelectedForSearchButtonClicked();
+    void onRemoveSelectedForKeyWordButtonClicked();
+    void onSubmitChangeForSearchButtonClicked();
+    void onSubmitChangeForKeyWordButtonClicked();
+
 private:
 
     QTabWidget* mainWidget;
@@ -43,7 +54,6 @@ private:
     QPushButton* removeSelectedForKeyWordButton;
     QPushButton* submitChangeForSearchButton;
     QPushButton* submitChangeForKeyWordButton;
-
 
 };
 

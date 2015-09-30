@@ -1,9 +1,13 @@
 #ifndef DBUTIL_H
 #define DBUTIL_H
 
+#include<QVariantList>
+
 class QSqlDatabase;
 class QSqlQuery;
 class QString;
+class EngineInfo;
+
 
 class DBUtil
 {
@@ -15,9 +19,16 @@ public:
     static void clearTables();
     static void initValues();
     static void printInfo(const QSqlQuery& query, bool result);
+    static bool insertKeyWords(const QVariantList& words);
+    static bool deleteKeyWords(const QVariantList& ids);
+    static bool insertEngines(const QVariantList& engineNames, const QVariantList& engineUrls);
+    static bool deleteEngines(const QVariantList& ids);
+    static QList<QString> getKeyWords();
+    static QList<EngineInfo> getEngineInfos();
     static void test();
 private:
     DBUtil();
+    static bool deleteByIds(const QString& sql, const QVariantList& ids);
 public:
     static const QString DB_NAME;
     static const QString SEARCH_ENGINE_NAME;
@@ -30,6 +41,12 @@ public:
     static const QString DROP_KEYWORD_SQL;
     static const QString DROP_CLICK_SQL;
     static const QString CONNECTION_NAME;
+    static const QString INSERT_KEY_WORDS_SQL;
+    static const QString INSERT_ENGINE_SQL;
+    static const QString DELETE_KEY_WORDS_SQL;
+    static const QString DELETE_ENGINE_SQL;
+    static const QString QUERY_KEY_WORDS_SQL;
+    static const QString QUERY_SEARCH_ENGINE_SQL;
 };
 
 #endif // DBUTIL_H

@@ -3,6 +3,8 @@
 #include "networkcookiejar.h"
 #include "updateinfo.h"
 #include "commonutils.h"
+#include "clickinfo.h"
+#include "engineinfo.h"
 #include <QtGui>
 #include <QtWebKit>
 #include <QTabWidget>
@@ -81,7 +83,7 @@ Browser::Browser(QWidget *parent) :
 
     connect(this, SIGNAL(searchFinished()), this, SLOT(onSearchFinished()));
 
-    view->load(QUrl("http://www.baidu.com"));
+//    view->load(QUrl("http://www.baidu.com"));
     keyWordEdit->setEnabled(false);
     isStop = true;
 
@@ -182,8 +184,10 @@ void Browser::openLink(const QUrl &url)
     WebPage* m_webPage = new WebPage(m_webView);
     m_webView->setPage(m_webPage);
     m_webView->load(url);
+    mutex->lock();
     int index = tabwidget->addTab((QWidget*)m_webView, tr("triger view"));
     list->append(index);
+    mutex->unlock();
     QTimer::singleShot(5000, this, SLOT(onTabTimeOut()));
     tabwidget->setCurrentIndex(index);
 }
@@ -303,23 +307,48 @@ void Browser::clearCookie()
     cookieJar->setCookies(empty);
 }
 
-void Browser::search(const QList<QString>& engines,
-                     const QList<QString> &urls,
-                     const QList<QString> &keyWords)
+void Browser::search(const QList<ClickInfo>& clickInfos)
 {
-    this->engines = QList<QString>(engines);
-    this->urls = QList<QString>(urls);
-    this->keyWords = QList<QString>(keyWords);
+    this->clickInfos = clickInfos;
     this->currentEngine = "";
     this->currentUrl = "";
     this->currentKeyWord = "";
     this->currentLinkName = "";
     this->currentLinkUrl = "";
+    this->currentWordIndex = 0;
+    this->currentClickNum = 0;
 
     isStop = false;
     emit searchFinished();
 }
 void Browser::onSearchFinished()
+{
+    checkAndEmitRealtimeInfo();
+    clearCookie();
+    if (isStop || clickInfos.isEmpty())
+    {
+        isStop = true;
+        emit jobFinished();
+        return;
+    }
+    //not empty search again build search key word
+    EngineInfo engineInfo = clickInfos.first().getEngineInfo();
+    QString engine = engineInfo.getEngineName();
+    QString url = engineInfo.getEngineUrl();
+    currentClickNum = currentClickNum < clickInfos.first().getKeyWords().size() ? currentClickNum : 0;
+    QString keyWord = clickInfos.first().getKeyWords().at(currentClickNum++);
+    //set current
+    currentEngine = engine;
+    currentUrl = url;
+    currentKeyWord = keyWord;
+    view->load(currentUrl);
+    keyWordEdit->setEnabled(true);
+    keyWordEdit->setText(currentKeyWord);
+    CommonUtils::sleep(5000);
+    startSearch();
+}
+
+void Browser::checkAndEmitRealtimeInfo()
 {
     if (currentUrl != "") {//click successfull
         UpdateInfo updateInfo(currentEngine,
@@ -327,33 +356,19 @@ void Browser::onSearchFinished()
                               currentKeyWord,
                               currentLinkName,
                               currentLinkUrl);
+        currentClickNum++;
+        int clickNum = clickInfos.first().getClickNum();
+        int totalClickNum = clickNum * clickInfos.first().getKeyWords().count();
+        if (currentClickNum == totalClickNum)
+        {
+            //if currentClickNum == totalClickNum clickInfos should move next
+            clickInfos.removeFirst();
+            //reset current click num and current word index
+            currentClickNum = 0;
+            currentWordIndex = 0;
+        }
         emit updateClickInfo(updateInfo);
     }
-
-    clearCookie();
-    if (isStop || urls.isEmpty() || keyWords.isEmpty())
-    {
-        isStop = true;
-        return;
-    }
-    //not empty search again
-    QString url = urls.first();
-    urls.removeFirst();
-    qDebug() << "urls size " << urls.count();
-    QString keyWord = keyWords.first();
-    keyWords.removeFirst();
-    qDebug() << "keyWords size " << keyWords.count();
-    QString engine = engines.first();
-    engines.removeFirst();
-    //set current
-    currentEngine = engine;
-    currentUrl = url;
-    currentKeyWord = keyWord;
-    view->load(url);
-    keyWordEdit->setEnabled(true);
-    keyWordEdit->setText(keyWord);
-    CommonUtils::sleep(5000);
-    startSearch();
 }
 
 void Browser::stopSearch()

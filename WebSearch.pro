@@ -19,7 +19,9 @@ SOURCES += main.cpp\
     dbutil.cpp \
     updateinfo.cpp \
     jobparamdialog.cpp \
-    configdialog.cpp
+    configdialog.cpp \
+    engineinfo.cpp \
+    clickinfo.cpp
 
 HEADERS  += mainwindow.h \
     browser.h \
@@ -29,7 +31,9 @@ HEADERS  += mainwindow.h \
     dbutil.h \
     updateinfo.h \
     jobparamdialog.h \
-    configdialog.h
+    configdialog.h \
+    engineinfo.h \
+    clickinfo.h
 
 FORMS    += mainwindow.ui
 

@@ -33,6 +33,7 @@ public slots:
     void onJobStateChange();
     void onJobUpdate(const UpdateInfo& updateInfo);
     void onConfigActionTrigger();
+    void onJobFinished();
 private:
     Ui::MainWindow *ui;
 

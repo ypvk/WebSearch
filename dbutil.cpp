@@ -1,5 +1,7 @@
 #include "dbutil.h"
+#include "engineinfo.h"
 #include <QtSql>
+#include <QtCore>
 
 const QString DBUtil::DBUtil::DB_NAME = "websearch.db";
 const QString DBUtil::SEARCH_ENGINE_NAME = "search_engine";
@@ -7,11 +9,17 @@ const QString DBUtil::KEY_WORD_NAME = "key_word";
 const QString DBUtil::CLICK_TABLE_NAME = "click";
 const QString DBUtil::CREATE_SEARCH_ENGINE_SQL= "create table search_engine(id INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(512), url varchar(1024))";
 const QString DBUtil::CREATE_KEYWORD_SQL = "create table key_word(id INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(512))";
-const QString DBUtil::CREATE_CLICK_SQL = "create table click(search_engine_id integer, key_word_id integer, click_times integer)";
+const QString DBUtil::CREATE_CLICK_SQL = "create table click(id INTEGER PRIMARY KEY AUTOINCREMENT, engine_url varchar(1024), key_word varchar(512), click_times long)";
 const QString DBUtil::DROP_SEARCH_ENGINE_SQL = "drop table search_engine";
 const QString DBUtil::DROP_KEYWORD_SQL = "drop table key_word";
 const QString DBUtil::DROP_CLICK_SQL = "drop table click";
 const QString DBUtil::CONNECTION_NAME = "my_sqlite_connection";
+const QString DBUtil::INSERT_KEY_WORDS_SQL = "insert into key_word(name) values(?)";
+const QString DBUtil::INSERT_ENGINE_SQL = "insert into search_engine(name, url) values(?,?)";
+const QString DBUtil::DELETE_ENGINE_SQL = "delete from search_engine where id=?";
+const QString DBUtil::DELETE_KEY_WORDS_SQL = "delete from key_word where id=?";
+const QString DBUtil::QUERY_KEY_WORDS_SQL = "select name from key_word";
+const QString DBUtil::QUERY_SEARCH_ENGINE_SQL = "select name, url from search_engine";
 
 DBUtil::DBUtil()
 {
@@ -120,4 +128,79 @@ void DBUtil::test()
                 << "," << query.value(1).toString()
                 << "," << query.value(2).toString();
     }
+}
+QList<QString> DBUtil::getKeyWords()
+{
+    QList<QString> keyWords;
+    QSqlDatabase db = getDB();
+    QSqlQuery query = getQuery(db);
+    query.exec(QUERY_KEY_WORDS_SQL);
+    while(query.next()) {
+        keyWords << query.value(0).toString();
+    }
+    return keyWords;
+}
+
+QList<EngineInfo> DBUtil::getEngineInfos()
+{
+    QList<EngineInfo> engineInfos;
+    QSqlDatabase db = getDB();
+    QSqlQuery query = getQuery(db);
+    query.exec(QUERY_SEARCH_ENGINE_SQL);
+    while(query.next()) {
+        engineInfos << EngineInfo(query.value(0).toString(), query.value(1).toString());
+    }
+    return engineInfos;
+}
+
+bool DBUtil::insertKeyWords(const QVariantList &words)
+{
+    qDebug() << "start insert words size:" << words.size();
+    QSqlDatabase db = getDB();
+    QSqlQuery query = getQuery(db);
+    bool result = query.prepare(INSERT_KEY_WORDS_SQL);
+    printInfo(query, result);
+    if (!result) return result;
+    query.addBindValue(words);
+    result = query.execBatch();
+    printInfo(query, result);
+    return result;
+
+}
+bool DBUtil::insertEngines(const QVariantList& engineNames, const QVariantList& engineUrls)
+{
+    qDebug() << "start insert engines size:" + engineNames.size();
+    QSqlDatabase db = getDB();
+    QSqlQuery query = getQuery(db);
+    bool result = query.prepare(INSERT_ENGINE_SQL);
+    printInfo(query, result);
+    if (!result) return result;
+    query.addBindValue(engineNames);
+    query.addBindValue(engineUrls);
+    result = query.execBatch();
+    printInfo(query, result);
+    return result;
+}
+
+bool DBUtil::deleteByIds(const QString &sql, const QVariantList &ids)
+{
+    qDebug() << "delete count: " << ids.count();
+    QSqlDatabase db = getDB();
+    QSqlQuery query = getQuery(db);
+    bool result = query.prepare(sql);
+    printInfo(query, result);
+    if (!result) return result;
+    query.addBindValue(ids);
+    result = query.execBatch();
+    printInfo(query, result);
+    return result;
+}
+
+bool DBUtil::deleteEngines(const QVariantList &ids)
+{
+    return deleteByIds(DELETE_ENGINE_SQL, ids);
+}
+bool DBUtil::deleteKeyWords(const QVariantList &ids)
+{
+    return deleteByIds(DELETE_KEY_WORDS_SQL, ids);
 }

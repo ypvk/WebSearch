@@ -18,7 +18,12 @@ void ConfigDialog::setupGui()
     layout1->addWidget(mainWidget);
 
     searchEngineView = new QTableView(this);
+    searchEngineView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    searchEngineView->horizontalHeader()->setStretchLastSection(true);
+
     keyWordView = new QTableView(this);
+    keyWordView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    keyWordView->horizontalHeader()->setStretchLastSection(true);
 
     searchEngineWidget = new QWidget(this);
     keyWordWidget = new QWidget(this);
@@ -74,6 +79,7 @@ void ConfigDialog::setupGui()
     QHBoxLayout* mainLayout = new QHBoxLayout;
     mainLayout->addWidget(mainWidget);
     this->setLayout(mainLayout);
+    this->resize(400,500);
 }
 
 void ConfigDialog::setupModel()
@@ -99,5 +105,198 @@ void ConfigDialog::setupModel()
 
 void ConfigDialog::setupConnection()
 {
+    connect(loadForSearchButton, SIGNAL(clicked()), this, SLOT(onLoadForSearchButtonClicked()));
+    connect(loadForKeyWordButton, SIGNAL(clicked()), this, SLOT(onLoadForKeyWordButtonClicked()));
+    connect(removeSelectedForSearchButton, SIGNAL(clicked()), this, SLOT(onRemoveSelectedForSearchButtonClicked()));
+    connect(removeSelectedForKeyWordButton, SIGNAL(clicked()), this, SLOT(onRemoveSelectedForKeyWordButtonClicked()));
+    connect(submitChangeForSearchButton, SIGNAL(clicked()), this, SLOT(onSubmitChangeForSearchButtonClicked()));
+    connect(submitChangeForKeyWordButton, SIGNAL(clicked()), this, SLOT(onSubmitChangeForKeyWordButtonClicked()));
+}
 
+void ConfigDialog::onLoadForKeyWordButtonClicked()
+{
+    QString fileName = this->getFileName();
+    if (fileName.isEmpty()) return;
+    QFileInfo fileInfo(fileName);
+    if (fileInfo.suffix().toLower() == "txt")
+    {
+        QFile file(fileName);
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            showMessage("error to open " + fileName);
+            return;
+        }
+        QTextStream in(&file);
+        in.setCodec(QTextCodec::codecForName("System"));
+        QVariantList words;
+        bool result = true;
+        while(!in.atEnd())
+        {
+            QString line = in.readLine().trimmed();
+            words << line;
+            if (words.count() == 100) {//insert for every 100 words
+                result = DBUtil::insertKeyWords(words);
+                if (!result) {
+                    showMessage("insert key word error");
+                    file.close();
+                    return;
+                }
+                words.clear();
+            }
+        }
+        //insert outside
+        if (!words.isEmpty()) {
+            result = DBUtil::insertKeyWords(words);
+            if (!result) {
+                showMessage("insert key word error");
+                file.close();
+                return;
+            }
+        }
+        file.close();
+    }
+    else if (fileInfo.suffix().toLower() == "xls")
+    {
+        showMessage("not support yet");
+    }
+    //update the view
+    keyWordModel->select();
+
+}
+void ConfigDialog::onLoadForSearchButtonClicked()
+{
+    QString fileName = this->getFileName();
+    if (fileName.isEmpty()) return;
+    QFileInfo fileInfo(fileName);
+    if (fileInfo.suffix().toLower() == "txt")
+    {
+        QFile file(fileName);
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            showMessage("error to open " + fileName);
+            return;
+        }
+        QTextStream in(&file);
+        in.setCodec(QTextCodec::codecForName("System"));
+        QVariantList engineNames;
+        QVariantList engineUrls;
+        bool result = true;
+        while(!in.atEnd())
+        {
+            QString line = in.readLine().trimmed();
+            QStringList words = line.split(QRegExp("\\s+|\\t+"));
+            qDebug() << words;
+            engineNames << words.at(0);
+            engineUrls << words.at(1);
+            if (engineNames.count() == 100) {//insert for every 100 words
+                result = DBUtil::insertEngines(engineNames, engineUrls);
+                if (!result) {
+                    showMessage("insert engine error");
+                    file.close();
+                    return;
+                }
+                engineNames.clear();
+                engineUrls.clear();
+            }
+        }
+        //insert outside
+        if (!engineNames.isEmpty()) {
+            result = DBUtil::insertEngines(engineNames, engineUrls);
+            if (!result) {
+                showMessage("insert engine error");
+                file.close();
+                return;
+            }
+        }
+        file.close();
+    }
+    else if (fileInfo.suffix().toLower() == "xls")
+    {
+        showMessage("not support yet");
+    }
+    //update the view
+    searchEngineModel->select();
+
+}
+void ConfigDialog::onRemoveSelectedForKeyWordButtonClicked()
+{
+    QItemSelectionModel *selections = keyWordView->selectionModel();
+    QModelIndexList indexes = selections->selectedIndexes();
+    if (indexes.count() == 0) {
+        showMessage("no row selected");
+    }
+    QVariantList ids;
+    foreach(QModelIndex index, indexes)
+    {
+        if(index.column() == 0) {
+            ids << index.data();
+        }
+    }
+    bool result = DBUtil::deleteKeyWords(ids);
+    if (! result) {
+        showMessage("error delete key word");
+    }
+    else
+        keyWordModel->select();
+}
+void ConfigDialog::onRemoveSelectedForSearchButtonClicked()
+{
+    QItemSelectionModel *selections = searchEngineView->selectionModel();
+    QModelIndexList indexes = selections->selectedIndexes();
+    if (indexes.count() == 0) {
+        showMessage("no row selected");
+    }
+    QVariantList ids;
+    foreach(QModelIndex index, indexes)
+    {
+        if(index.column() == 0) {
+            ids << index.data();
+        }
+    }
+    bool result = DBUtil::deleteEngines(ids);
+    if (! result) {
+        showMessage("error delete engine");
+    }
+    else
+        searchEngineModel->select();
+}
+
+void ConfigDialog::onSubmitChangeForKeyWordButtonClicked()
+{
+    bool result = keyWordModel->submitAll();
+    if (!result)
+    {
+        showMessage("get exception:" + keyWordModel->lastError().text());
+    }
+    else {
+        showSuccessMessage("Sucess Submit");
+    }
+}
+void ConfigDialog::onSubmitChangeForSearchButtonClicked()
+{
+    bool result = searchEngineModel->submitAll();
+    if (!result)
+    {
+        showMessage("get exception:" + searchEngineModel->lastError().text());
+    }
+    else
+    {
+        showSuccessMessage("Sucess Submit");
+    }
+}
+
+QString ConfigDialog::getFileName()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"),
+                                                    "./",
+                                                    tr("File (*.txt *.xls)"));
+    qDebug() << "get filename: " << fileName;
+    return fileName;
+}
+
+void ConfigDialog::showMessage(const QString& msg)
+{
+    QMessageBox::information(this, tr("error"), msg);
+}
+void ConfigDialog::showSuccessMessage(const QString &msg)
+{
+    QMessageBox::information(this, tr("Success"), msg);
 }

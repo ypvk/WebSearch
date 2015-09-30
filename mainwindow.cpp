@@ -5,6 +5,7 @@
 #include "dbutil.h"
 #include "jobparamdialog.h"
 #include "configdialog.h"
+#include "engineinfo.h"
 #include <QtGui/QLineEdit>
 #include <QtGui/QPushButton>
 #include <QtWebKit/QWebView>
@@ -46,6 +47,7 @@ void MainWindow::setupGui()
 
     clickView = new QTableView(this);
     clickView->setEnabled(false);
+    clickView->horizontalHeader()->setStretchLastSection(true);
 
     QVBoxLayout* layout1 = new QVBoxLayout;
     layout1->addWidget(clickView);
@@ -101,6 +103,7 @@ void MainWindow::setupConnection()
     connect(startJobAction, SIGNAL(triggered()), this, SLOT(onJobStateChange()));
     connect(stopJobAction, SIGNAL(triggered()), this, SLOT(onJobStateChange()));
     connect(browser, SIGNAL(updateClickInfo(UpdateInfo)), this, SLOT(onJobUpdate(UpdateInfo)));
+    connect(browser, SIGNAL(jobFinished()), this, SLOT(onJobFinished()));
     connect(configAction, SIGNAL(triggered()), this, SLOT(onConfigActionTrigger()));
 }
 
@@ -136,12 +139,16 @@ void MainWindow::onJobStateChange()
         else return;
     }else
     {
-        stopJobAction->setEnabled(false);
-        browser->stopSearch();
-        browser->hide();
-        isRunning = false;
-        startJobAction->setEnabled(true);
+       this->onJobFinished();
     }
+}
+void MainWindow::onJobFinished()
+{
+    stopJobAction->setEnabled(false);
+    browser->stopSearch();
+    browser->hide();
+    isRunning = false;
+    startJobAction->setEnabled(true);
 }
 
 void MainWindow::setupModel()
@@ -151,26 +158,31 @@ void MainWindow::setupModel()
     clickModel->setTable(DBUtil::CLICK_TABLE_NAME);
     clickModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
     clickModel->select();
-    clickModel->setHeaderData(0, Qt::Horizontal, QObject::tr("search engine id"));
-    clickModel->setHeaderData(1, Qt::Horizontal, QObject::tr("key word id"));
-    clickModel->setHeaderData(2, Qt::Horizontal, QObject::tr("click times"));
+    clickModel->setHeaderData(0, Qt::Horizontal, QObject::tr("ID"));
+    clickModel->setHeaderData(1, Qt::Horizontal, QObject::tr("ENGINE URL"));
+    clickModel->setHeaderData(2, Qt::Horizontal, QObject::tr("KEY WORD"));
+    clickModel->setHeaderData(3, Qt::Horizontal, QObject::tr("CLICK TIMES"));
     clickView->setModel(clickModel);
 
 }
 void MainWindow::startSearchJob(int clickNum)
 {
-    QList<QString> engines = QList<QString>();
-    QList<QString> urls = QList<QString>();
-    QList<QString> keyWords = QList<QString>();
-    for (int i = 0; i< clickNum; i++) {
-        engines.append("百度");
-        urls.append("http://www.baidu.com");
-        keyWords.append("musper");
+    QList<QString> keyWords = DBUtil::getKeyWords();
+    QList<EngineInfo> engineInfos = DBUtil::getEngineInfos();
+    qDebug() << keyWords;
+    if (keyWords.isEmpty() || engineInfos.isEmpty())
+    {
+        qDebug() << "empty job";
+        this->onJobFinished();
+        return;
     }
-    for (int i = 0; i < clickNum; i++) {
-        engines.append("手机百度");
-        urls.append("http://m.baidu.com");
-        keyWords.append("musper");
+    //build clickInfo
+    QList<ClickInfo> clickInfos;
+    for (int i = 0; i < engineInfos.size(); i++)
+    {
+//        QString a = engineInfos.at(i).getEngineName() + " " + engineInfos.at(i).getEngineUrl();
+//        qDebug() << a;
+        clickInfos << ClickInfo(engineInfos.at(i), keyWords, clickNum);
     }
-    browser->search(engines, urls, keyWords);
+    browser->search(clickInfos);
 }
