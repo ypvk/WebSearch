@@ -25,10 +25,13 @@ private:
 protected slots:
     void onLoadForSearchButtonClicked();
     void onLoadForKeyWordButtonClicked();
+    void onLoadForProxyButtonClicked();
     void onRemoveSelectedForSearchButtonClicked();
     void onRemoveSelectedForKeyWordButtonClicked();
+    void onRemoveSelectedForProxyButtonClicked();
     void onSubmitChangeForSearchButtonClicked();
     void onSubmitChangeForKeyWordButtonClicked();
+    void onSubmitChangeForProxyButtonClicked();
 
 private:
 
@@ -36,24 +39,33 @@ private:
 
     QTableView* searchEngineView;
     QTableView* keyWordView;
+    QTableView* proxyView;
 
     QSqlTableModel* searchEngineModel;
     QSqlTableModel* keyWordModel;
+    QSqlTableModel* proxyModel;
 
     QWidget* searchEngineWidget;
     QWidget* keyWordWidget;
+    QWidget* proxyWidget;
 
     QGroupBox* searchEngineGroupBox;
     QGroupBox* searchEngineOperationBox;
     QGroupBox* keyWordGroupBox;
     QGroupBox* keyWordOperationBox;
+    QGroupBox* proxyGroupBox;
+    QGroupBox* proxyOperationBox;
+
 
     QPushButton* loadForSearchButton;
     QPushButton* loadForKeyWordButton;
+    QPushButton* loadForProxyButton;
     QPushButton* removeSelectedForSearchButton;
     QPushButton* removeSelectedForKeyWordButton;
+    QPushButton* removeSelectedForProxyButton;
     QPushButton* submitChangeForSearchButton;
     QPushButton* submitChangeForKeyWordButton;
+    QPushButton* submitChangeForProxyButton;
 
 };
 

@@ -139,6 +139,11 @@ void Browser::finishLoading(bool)
     view->page()->mainFrame()->evaluateJavaScript(jQuery);
 
     keyWordEdit->setEnabled(true);
+    if (searchFlag)
+    {
+        searchFlag = false;
+        startSearch();
+    }
 }
 void Browser::highlightAllLinks()
 {
@@ -217,44 +222,70 @@ void Browser::onTabTimeOut()
 void Browser::onLinkTimeOut()
 {
     view->back();
-    CommonUtils::sleep(3000);
+//    CommonUtils::sleep(3000);
     shouldBack = false;
     emit searchFinished();
 }
 
 void Browser::startSearch()
 {
-   QString url = locationEdit->text();
+   QString url = view->url().toString();
    if (url.startsWith(tr("http://m.baidu.com")))
        startSearchForMBaidu();
-   else if (url.startsWith("https://www.baidu.com"))
+   else if (url.startsWith("https://www.baidu.com") || url.startsWith("http://www.baidu.com"))
        startSearchForBaidu();
 }
 
 void Browser::startSearchForBaidu()
 {
+    QString inTextSelector = "#kw";
     QString keyWord = keyWordEdit->text();
-    //start search the key word
-    QString js = QString("$('input#kw').val('%1')").arg(keyWord);
-    view->page()->mainFrame()->evaluateJavaScript(js);
-    CommonUtils::sleep(1000);
-    view->page()->mainFrame()->evaluateJavaScript("$('#su').click()");
-    CommonUtils::sleep(7000);
-    hrefClick();
+    QWebElement element = view->page()->mainFrame()->findFirstElement(inTextSelector);
+    element.setAttribute("value", keyWord);
+    QTimer::singleShot(3000, this, SLOT(baiduSubmitButtonClick()));
 }
 
 void Browser::startSearchForMBaidu()
 {
+    QString inTextSelector = "input[type='text']";
     QString keyWord = keyWordEdit->text();
-    QWebElement element = view->page()->mainFrame()->findFirstElement("input[type='text']");
+    QWebElement element = view->page()->mainFrame()->findFirstElement(inTextSelector);
     element.setAttribute("value", keyWord);
-    CommonUtils::sleep(2000);
-    element = view->page()->mainFrame()->findFirstElement("input[type=submit]");
+    QTimer::singleShot(3000, this, SLOT(mBaiduSubmitButtonClick()));
+}
+
+void Browser::baseSearchAction(const QString &textSelector, const QString &submitSelector)
+{
+    QString inTextSelector = textSelector.isEmpty() ? "input[type='text']" : textSelector;
+    QString inSubmitSelector = submitSelector.isEmpty() ? "input[type=submit]" : submitSelector;
+    QString keyWord = keyWordEdit->text();
+    QWebElement element = view->page()->mainFrame()->findFirstElement(inTextSelector);
+    element.setAttribute("value", keyWord);
+
+    element = view->page()->mainFrame()->findFirstElement(inSubmitSelector);
     qDebug() << element.geometry().center();
     QPoint elemPos = element.geometry().center();
     buttonClick(elemPos);
-    CommonUtils::sleep(7000);
-    mHrefClick();
+}
+
+void Browser::baiduSubmitButtonClick()
+{
+    QString inSubmitSelector = "input[type=submit]";
+    QWebElement element = view->page()->mainFrame()->findFirstElement(inSubmitSelector);
+    qDebug() << element.geometry().center();
+    QPoint elemPos = element.geometry().center();
+    buttonClick(elemPos);
+    QTimer::singleShot(5000, this, SLOT(hrefClick()));
+}
+
+void Browser::mBaiduSubmitButtonClick()
+{
+    QString inSubmitSelector = "input[type=submit]";
+    QWebElement element = view->page()->mainFrame()->findFirstElement(inSubmitSelector);
+    qDebug() << element.geometry().center();
+    QPoint elemPos = element.geometry().center();
+    buttonClick(elemPos);
+    QTimer::singleShot(5000, this, SLOT(mHrefClick()));
 }
 
 Browser::~Browser()
@@ -277,6 +308,10 @@ void Browser::mHrefClick()
 void Browser::baseHrefClick(const QString &lickItemSelector)
 {
     QWebElementCollection elements = view->page()->mainFrame()->findAllElements(lickItemSelector);
+    if (elements.count() == 0) {//don't have elements just return
+        emit searchFinished();
+        return;
+    }
     int index = CommonUtils::rand(elements.count());
     qDebug() << "select element " << index;
     QWebElement element = elements[index];
@@ -309,12 +344,14 @@ void Browser::clearCookie()
 
 void Browser::search(const QList<ClickInfo>& clickInfos)
 {
+    this->clickInfos.clear();//clear
     this->clickInfos = clickInfos;
     this->currentEngine = "";
     this->currentUrl = "";
     this->currentKeyWord = "";
     this->currentLinkName = "";
     this->currentLinkUrl = "";
+    this->currentIp = "";
     this->currentWordIndex = 0;
     this->currentClickNum = 0;
 
@@ -335,17 +372,42 @@ void Browser::onSearchFinished()
     EngineInfo engineInfo = clickInfos.first().getEngineInfo();
     QString engine = engineInfo.getEngineName();
     QString url = engineInfo.getEngineUrl();
-    currentClickNum = currentClickNum < clickInfos.first().getKeyWords().size() ? currentClickNum : 0;
-    QString keyWord = clickInfos.first().getKeyWords().at(currentClickNum++);
+    QList<QPair<QString, int> > proxys = clickInfos.first().getProxys();
+    currentWordIndex = currentWordIndex < clickInfos.first().getKeyWords().size() ? currentWordIndex : 0;
+    QString keyWord = clickInfos.first().getKeyWords().at(currentWordIndex++);
     //set current
     currentEngine = engine;
     currentUrl = url;
     currentKeyWord = keyWord;
+    //set proxy
+    int index = proxys.count() - currentClickNum % (proxys.count() + 1);
+    if (index == proxys.count())
+    {//use no proxy
+        currentIp = CommonUtils::getMyIp();
+        qDebug() << "use local ip->" << currentIp;
+        QNetworkProxy proxy;
+        proxy.setType(QNetworkProxy::NoProxy);
+        view->page()->networkAccessManager()->setProxy(proxy);
+    }
+    else
+    {
+        QString hostname = proxys.at(index).first;
+        int port = proxys.at(index).second;
+        qDebug() << "use proxy->" << hostname << ":" << port;
+        QNetworkProxy proxy;
+        proxy.setType(QNetworkProxy::HttpProxy);
+        proxy.setHostName(hostname);
+        proxy.setPort(port);
+        view->page()->networkAccessManager()->setProxy(proxy);
+        currentIp = hostname;
+    }
+    //load url
+    searchFlag = true;
     view->load(currentUrl);
     keyWordEdit->setEnabled(true);
     keyWordEdit->setText(currentKeyWord);
-    CommonUtils::sleep(5000);
-    startSearch();
+//    CommonUtils::sleep(5000);
+//    startSearch();
 }
 
 void Browser::checkAndEmitRealtimeInfo()
@@ -355,10 +417,13 @@ void Browser::checkAndEmitRealtimeInfo()
                               currentUrl,
                               currentKeyWord,
                               currentLinkName,
-                              currentLinkUrl);
+                              currentLinkUrl,
+                              currentIp);
         currentClickNum++;
         int clickNum = clickInfos.first().getClickNum();
         int totalClickNum = clickNum * clickInfos.first().getKeyWords().count();
+        qDebug() << "clickNum:" << currentClickNum;
+        qDebug() << "totalCliclNum:" << totalClickNum;
         if (currentClickNum == totalClickNum)
         {
             //if currentClickNum == totalClickNum clickInfos should move next
@@ -374,5 +439,5 @@ void Browser::checkAndEmitRealtimeInfo()
 void Browser::stopSearch()
 {
     isStop = true;
-    view->stop();
+    //view->stop();
 }

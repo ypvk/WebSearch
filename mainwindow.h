@@ -13,6 +13,7 @@ class QGroupBox;
 class QPushButton;
 class QLabel;
 class QToolBar;
+class QLineEdit;
 class Browser;
 class UpdateInfo;
 
@@ -47,15 +48,17 @@ private:
     QPushButton* enterButton;
 
     QLabel* searchEngineLabel;
-    QLabel* searchEngineLabelValue;
+    QLineEdit* searchEngineLabelValue;
     QLabel* searchUrlLabel;
-    QLabel* searchUrlLabelValue;
+    QLineEdit* searchUrlLabelValue;
     QLabel* keyWordLabel;
-    QLabel* keyWordLabelValue;
+    QLineEdit* keyWordLabelValue;
     QLabel* clickLinkLabel;
-    QLabel* clickLinkLabelValue;
+    QLineEdit* clickLinkLabelValue;
     QLabel* clickUrlLabel;
-    QLabel* clickUrlLabelValue;
+    QLineEdit* clickUrlLabelValue;
+    QLabel* ipLabel;
+    QLineEdit* ipValue;
 
     QAction* startJobAction;
     QAction* stopJobAction;

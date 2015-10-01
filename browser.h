@@ -49,12 +49,15 @@ protected slots:
      void startSearchForBaidu();
      void startSearchForMBaidu();
      void onSearchFinished();
-private:
      void hrefClick();
      void mHrefClick();
+     void baiduSubmitButtonClick();
+     void mBaiduSubmitButtonClick();
+private:
      void buttonClick(const QPoint& pos);
      void clearCookie();
      void baseHrefClick(const QString& lickItemSelector);
+     void baseSearchAction(const QString& textSelector, const QString& submitSelector);
      void checkAndEmitRealtimeInfo();
 
  private:
@@ -83,8 +86,10 @@ private:
      QString currentKeyWord;
      QString currentLinkName;
      QString currentLinkUrl;
+     QString currentIp;
 
      bool isStop;
+     bool searchFlag;
 };
 
 #endif // BROWSER_H

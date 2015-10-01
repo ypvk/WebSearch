@@ -25,15 +25,23 @@ void ConfigDialog::setupGui()
     keyWordView->setSelectionBehavior(QAbstractItemView::SelectRows);
     keyWordView->horizontalHeader()->setStretchLastSection(true);
 
+    proxyView = new QTableView(this);
+    proxyView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    proxyView->horizontalHeader()->setStretchLastSection(true);
+
     searchEngineWidget = new QWidget(this);
     keyWordWidget = new QWidget(this);
+    proxyWidget = new QWidget(this);
 
     loadForSearchButton = new QPushButton(tr("load"), this);
     loadForKeyWordButton = new QPushButton(tr("load"), this);
+    loadForProxyButton = new QPushButton(tr("load"), this);
     removeSelectedForSearchButton = new QPushButton(tr("remove selected"), this);
-    removeSelectedForKeyWordButton = new QPushButton(tr("remove selected"), this);;
+    removeSelectedForKeyWordButton = new QPushButton(tr("remove selected"), this);
+    removeSelectedForProxyButton = new QPushButton(tr("remove selected"), this);
     submitChangeForSearchButton = new QPushButton(tr("submit"), this);
     submitChangeForKeyWordButton = new QPushButton(tr("submit"), this);
+    submitChangeForProxyButton = new QPushButton(tr("submit"), this);
 
 
     searchEngineGroupBox = new QGroupBox(tr("search engine"), this);
@@ -71,10 +79,29 @@ void ConfigDialog::setupGui()
     kwOperationBoxLayout->addWidget(removeSelectedForKeyWordButton);
     kwOperationBoxLayout->addWidget(submitChangeForKeyWordButton);
     keyWordOperationBox->setLayout(kwOperationBoxLayout);
+    //proxy
+    proxyGroupBox = new QGroupBox(tr("proxy"), this);
+    proxyOperationBox = new QGroupBox(tr("operation"), this);
+
+    QVBoxLayout* proxyWidgetLayout = new QVBoxLayout;
+    proxyWidgetLayout->addWidget(proxyGroupBox);
+    proxyWidgetLayout->addWidget(proxyOperationBox);
+    proxyWidget->setLayout(proxyWidgetLayout);
+
+    QHBoxLayout* pxGroupBoxLayout = new QHBoxLayout;
+    pxGroupBoxLayout->addWidget(proxyView);
+    proxyGroupBox->setLayout(pxGroupBoxLayout);
+
+    QHBoxLayout* pxOperationBoxLayout = new QHBoxLayout;
+    pxOperationBoxLayout->addWidget(loadForProxyButton);
+    pxOperationBoxLayout->addWidget(removeSelectedForProxyButton);
+    pxOperationBoxLayout->addWidget(submitChangeForProxyButton);
+    proxyOperationBox->setLayout(pxOperationBoxLayout);
 
 
     mainWidget->addTab(searchEngineWidget, tr("search engine config"));
     mainWidget->addTab(keyWordWidget, tr("key word config"));
+    mainWidget->addTab(proxyWidget, tr("proxy widget"));
 
     QHBoxLayout* mainLayout = new QHBoxLayout;
     mainLayout->addWidget(mainWidget);
@@ -101,16 +128,28 @@ void ConfigDialog::setupModel()
     keyWordModel->setHeaderData(0, Qt::Horizontal, QObject::tr("ID"));
     keyWordModel->setHeaderData(1, Qt::Horizontal, QObject::tr("Name"));
     keyWordView->setModel(keyWordModel);
+
+    proxyModel = new QSqlTableModel(this, db);
+    proxyModel->setTable(DBUtil::PROXY_NAME);
+    proxyModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
+    proxyModel->select();
+    proxyModel->setHeaderData(0, Qt::Horizontal, QObject::tr("ID"));
+    proxyModel->setHeaderData(1, Qt::Horizontal, QObject::tr("Url"));
+    proxyModel->setHeaderData(1, Qt::Horizontal, QObject::tr("Port"));
+    proxyView->setModel(proxyModel);
 }
 
 void ConfigDialog::setupConnection()
 {
     connect(loadForSearchButton, SIGNAL(clicked()), this, SLOT(onLoadForSearchButtonClicked()));
     connect(loadForKeyWordButton, SIGNAL(clicked()), this, SLOT(onLoadForKeyWordButtonClicked()));
+    connect(loadForProxyButton, SIGNAL(clicked()), this, SLOT(onLoadForProxyButtonClicked()));
     connect(removeSelectedForSearchButton, SIGNAL(clicked()), this, SLOT(onRemoveSelectedForSearchButtonClicked()));
     connect(removeSelectedForKeyWordButton, SIGNAL(clicked()), this, SLOT(onRemoveSelectedForKeyWordButtonClicked()));
+    connect(removeSelectedForProxyButton, SIGNAL(clicked()), this, SLOT(onRemoveSelectedForProxyButtonClicked()));
     connect(submitChangeForSearchButton, SIGNAL(clicked()), this, SLOT(onSubmitChangeForSearchButtonClicked()));
     connect(submitChangeForKeyWordButton, SIGNAL(clicked()), this, SLOT(onSubmitChangeForKeyWordButtonClicked()));
+    connect(submitChangeForProxyButton, SIGNAL(clicked()), this, SLOT(onSubmitChangeForProxyButtonClicked()));
 }
 
 void ConfigDialog::onLoadForKeyWordButtonClicked()
@@ -160,6 +199,60 @@ void ConfigDialog::onLoadForKeyWordButtonClicked()
     }
     //update the view
     keyWordModel->select();
+
+}
+void ConfigDialog::onLoadForProxyButtonClicked()
+{
+    QString fileName = this->getFileName();
+    if (fileName.isEmpty()) return;
+    QFileInfo fileInfo(fileName);
+    if (fileInfo.suffix().toLower() == "txt")
+    {
+        QFile file(fileName);
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            showMessage("error to open " + fileName);
+            return;
+        }
+        QTextStream in(&file);
+        in.setCodec(QTextCodec::codecForName("System"));
+        QVariantList ips;
+        QVariantList ports;
+        bool result = true;
+        while(!in.atEnd())
+        {
+            QString line = in.readLine().trimmed();
+            QStringList words = line.split(QRegExp("\\s+|\\t+"));
+            qDebug() << words;
+            ips << words.at(0);
+            ports << words.at(1).toInt();
+            if (words.count() == 100) {//insert for every 100 words
+                result = DBUtil::insertProxys(ips, ports);
+                if (!result) {
+                    showMessage("insert proxy error");
+                    file.close();
+                    return;
+                }
+                ips.clear();
+                ports.clear();
+            }
+        }
+        //insert outside
+        if (!ips.isEmpty()) {
+            result = DBUtil::insertProxys(ips, ports);
+            if (!result) {
+                showMessage("insert proxy error");
+                file.close();
+                return;
+            }
+        }
+        file.close();
+    }
+    else if (fileInfo.suffix().toLower() == "xls")
+    {
+        showMessage("not support yet");
+    }
+    //update the view
+    proxyModel->select();
 
 }
 void ConfigDialog::onLoadForSearchButtonClicked()
@@ -237,6 +330,27 @@ void ConfigDialog::onRemoveSelectedForKeyWordButtonClicked()
     else
         keyWordModel->select();
 }
+void ConfigDialog::onRemoveSelectedForProxyButtonClicked()
+{
+    QItemSelectionModel *selections = proxyView->selectionModel();
+    QModelIndexList indexes = selections->selectedIndexes();
+    if (indexes.count() == 0) {
+        showMessage("no row selected");
+    }
+    QVariantList ids;
+    foreach(QModelIndex index, indexes)
+    {
+        if(index.column() == 0) {
+            ids << index.data();
+        }
+    }
+    bool result = DBUtil::deleteProxys(ids);
+    if (! result) {
+        showMessage("error delete key word");
+    }
+    else
+        proxyModel->select();
+}
 void ConfigDialog::onRemoveSelectedForSearchButtonClicked()
 {
     QItemSelectionModel *selections = searchEngineView->selectionModel();
@@ -265,6 +379,18 @@ void ConfigDialog::onSubmitChangeForKeyWordButtonClicked()
     if (!result)
     {
         showMessage("get exception:" + keyWordModel->lastError().text());
+    }
+    else {
+        showSuccessMessage("Sucess Submit");
+    }
+}
+void ConfigDialog::onSubmitChangeForProxyButtonClicked()
+{
+    bool result = proxyModel->submitAll();
+    proxyModel->database().commit();
+    if (!result)
+    {
+        showMessage("get exception:" + proxyModel->lastError().text());
     }
     else {
         showSuccessMessage("Sucess Submit");

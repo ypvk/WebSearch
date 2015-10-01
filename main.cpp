@@ -4,6 +4,7 @@
 #include "mainwindow.h"
 #include "browser.h"
 #include "dbutil.h"
+#include "commonutils.h"
 
 //#define FIRST_INIT
 

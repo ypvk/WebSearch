@@ -41,12 +41,14 @@ void MainWindow::setupGui()
     this->setCentralWidget(splitter);
 
     realTimeGroupBox = new QGroupBox(tr("realtime info"), this);
-    infoGroupBox = new QGroupBox(tr("basic info"), this);
+    infoGroupBox = new QGroupBox(tr("click info"), this);
     splitter->addWidget(realTimeGroupBox);
     splitter->addWidget(infoGroupBox);
+    splitter->setStretchFactor(1, 70);
+
 
     clickView = new QTableView(this);
-    clickView->setEnabled(false);
+    clickView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     clickView->horizontalHeader()->setStretchLastSection(true);
 
     QVBoxLayout* layout1 = new QVBoxLayout;
@@ -56,15 +58,21 @@ void MainWindow::setupGui()
 
     QGridLayout* layout2 = new QGridLayout;
     searchEngineLabel = new QLabel(tr("search engine"), this);
-    searchEngineLabelValue = new QLabel(this);
+    searchEngineLabelValue = new QLineEdit(this);
     searchUrlLabel = new QLabel(tr("search engine url"), this);
-    searchUrlLabelValue = new QLabel(this);
+    searchUrlLabelValue = new QLineEdit(this);
     keyWordLabel = new QLabel(tr("key word"), this);
-    keyWordLabelValue = new QLabel(this);
+    keyWordLabelValue = new QLineEdit(this);
     clickLinkLabel = new QLabel(tr("click link name"), this);
-    clickLinkLabelValue = new QLabel(this);
+    clickLinkLabelValue = new QLineEdit(this);
     clickUrlLabel = new QLabel(tr("click link url"), this);
-    clickUrlLabelValue = new QLabel(this);
+    clickUrlLabelValue = new QLineEdit(this);
+    ipLabel = new QLabel(tr("ip"), this);
+    ipValue = new QLineEdit(this);
+
+    layout2->setColumnStretch(0, 1);
+    layout2->setColumnStretch(1, 2);
+//    layout2->setSizeConstraint(QLayout::SetFixedSize);
 
     layout2->addWidget(searchEngineLabel, 0, 0, 1, 1);
     layout2->addWidget(searchEngineLabelValue, 0, 1, 1, 1);
@@ -76,13 +84,16 @@ void MainWindow::setupGui()
     layout2->addWidget(clickLinkLabelValue, 3,1,1,1);
     layout2->addWidget(clickUrlLabel, 4,0,1,1);
     layout2->addWidget(clickUrlLabelValue, 4,1,1,1);
+    layout2->addWidget(ipLabel, 5,0, 1,1);
+    layout2->addWidget(ipValue, 5,1,1,1);
     realTimeGroupBox->setLayout(layout2);
+//    realTimeGroupBox->setSizePolicy(QSizePolicy::Fixed ,QSizePolicy::Expanding);
 
     toolBar = this->addToolBar(tr("main tool bar"));
     //add browser
     browser = new Browser();
     isRunning = false;
-    this->resize(700, 400);
+    this->resize(800, 400);
 }
 
 void MainWindow::setupAction()
@@ -120,6 +131,7 @@ void MainWindow::onJobUpdate(const UpdateInfo &updateInfo)
     this->keyWordLabelValue->setText(updateInfo.keyWord);
     this->clickLinkLabelValue->setText(updateInfo.clickName);
     this->clickUrlLabelValue->setText(updateInfo.clickUrl);
+    this->ipValue->setText(updateInfo.ip);
     bool result = DBUtil::incWorkClick(updateInfo.keyWord, updateInfo.engineUrl);
     if (!result)
     {
@@ -177,7 +189,9 @@ void MainWindow::startSearchJob(int clickNum)
 {
     QList<QString> keyWords = DBUtil::getKeyWords();
     QList<EngineInfo> engineInfos = DBUtil::getEngineInfos();
+    QList<QPair<QString, int> > proxys = DBUtil::getProxys();
     qDebug() << keyWords;
+    qDebug() << proxys;
     if (keyWords.isEmpty() || engineInfos.isEmpty())
     {
         qDebug() << "empty job";
@@ -188,9 +202,7 @@ void MainWindow::startSearchJob(int clickNum)
     QList<ClickInfo> clickInfos;
     for (int i = 0; i < engineInfos.size(); i++)
     {
-//        QString a = engineInfos.at(i).getEngineName() + " " + engineInfos.at(i).getEngineUrl();
-//        qDebug() << a;
-        clickInfos << ClickInfo(engineInfos.at(i), keyWords, clickNum);
+        clickInfos << ClickInfo(engineInfos.at(i), keyWords, proxys, clickNum);
     }
     browser->search(clickInfos);
 }
