@@ -35,6 +35,7 @@ public slots:
     void onJobUpdate(const UpdateInfo& updateInfo);
     void onConfigActionTrigger();
     void onJobFinished();
+    void onAboutActiontrigger();
 private:
     Ui::MainWindow *ui;
 
@@ -63,6 +64,7 @@ private:
     QAction* startJobAction;
     QAction* stopJobAction;
     QAction* configAction;
+    QAction* aboutAction;
 
     QToolBar* toolBar;
     bool isRunning;

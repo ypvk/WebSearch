@@ -22,7 +22,8 @@ SOURCES += main.cpp\
     configdialog.cpp \
     engineinfo.cpp \
     clickinfo.cpp \
-    engineconfig.cpp
+    engineconfig.cpp \
+    aboutdialog.cpp
 
 HEADERS  += mainwindow.h \
     browser.h \
@@ -35,7 +36,8 @@ HEADERS  += mainwindow.h \
     configdialog.h \
     engineinfo.h \
     clickinfo.h \
-    engineconfig.h
+    engineconfig.h \
+    aboutdialog.h
 
 FORMS    += mainwindow.ui
 

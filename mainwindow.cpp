@@ -6,6 +6,7 @@
 #include "jobparamdialog.h"
 #include "configdialog.h"
 #include "engineinfo.h"
+#include "aboutdialog.h"
 #include <QtGui/QLineEdit>
 #include <QtGui/QPushButton>
 #include <QtWebKit/QWebView>
@@ -101,12 +102,14 @@ void MainWindow::setupAction()
     startJobAction = new QAction(tr("startJob"), this);
     stopJobAction = new QAction(tr("stopJob"), this);
     configAction = new QAction(tr("config"), this);
+    aboutAction = new QAction(tr("about"), this);
 
     stopJobAction->setEnabled(false);
 
     toolBar->addAction(startJobAction);
     toolBar->addAction(stopJobAction);
     toolBar->addAction(configAction);
+    toolBar->addAction(aboutAction);
 }
 
 void MainWindow::setupConnection()
@@ -116,11 +119,17 @@ void MainWindow::setupConnection()
     connect(browser, SIGNAL(updateClickInfo(UpdateInfo)), this, SLOT(onJobUpdate(UpdateInfo)));
     connect(browser, SIGNAL(jobFinished()), this, SLOT(onJobFinished()));
     connect(configAction, SIGNAL(triggered()), this, SLOT(onConfigActionTrigger()));
+    connect(aboutAction, SIGNAL(triggered()), this, SLOT(onAboutActiontrigger()));
 }
 
 void MainWindow::onConfigActionTrigger()
 {
     ConfigDialog dialog;
+    dialog.exec();
+}
+void MainWindow::onAboutActiontrigger()
+{
+    AboutDialog dialog;
     dialog.exec();
 }
 
