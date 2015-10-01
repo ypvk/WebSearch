@@ -5,8 +5,8 @@ JobParamDialog::JobParamDialog(QWidget *parent) :
     QDialog(parent)
 {
     clickNumLabel = new QLabel(tr("click num"), this);
-    clickNum = new QSpinBox(this);
-    clickNum->setMinimum(1);
+    clickNum = new QLineEdit(this);
+    clickNum->setText("1");
     QVBoxLayout* mainLayout = new QVBoxLayout;
     QHBoxLayout* layout = new QHBoxLayout;
     layout->addWidget(clickNumLabel);
@@ -28,5 +28,7 @@ JobParamDialog::JobParamDialog(QWidget *parent) :
 
 int JobParamDialog::getClickNum()
 {
-    return clickNum->value();
+    int num = clickNum->text().toInt();
+    if (num >= 0) return num;
+    else return 0;
 }

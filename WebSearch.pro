@@ -21,7 +21,8 @@ SOURCES += main.cpp\
     jobparamdialog.cpp \
     configdialog.cpp \
     engineinfo.cpp \
-    clickinfo.cpp
+    clickinfo.cpp \
+    engineconfig.cpp
 
 HEADERS  += mainwindow.h \
     browser.h \
@@ -33,7 +34,8 @@ HEADERS  += mainwindow.h \
     jobparamdialog.h \
     configdialog.h \
     engineinfo.h \
-    clickinfo.h
+    clickinfo.h \
+    engineconfig.h
 
 FORMS    += mainwindow.ui
 

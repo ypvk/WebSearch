@@ -12,6 +12,7 @@
 Browser::Browser(QWidget *parent) :
         QMainWindow(parent)
 {
+    initConfig();
     shouldBack = false;
     QFile file;
     file.setFileName(":/jquery.min.js");
@@ -68,13 +69,6 @@ Browser::Browser(QWidget *parent) :
 
     QMenu *effectMenu = menuBar()->addMenu(tr("&Effect"));
     effectMenu->addAction("Highlight all links", this, SLOT(highlightAllLinks()));
-
-    rotateAction = new QAction(this);
-    rotateAction->setIcon(style()->standardIcon(QStyle::SP_FileDialogDetailedView));
-    rotateAction->setCheckable(true);
-    rotateAction->setText(tr("Turn images upside down"));
-    connect(rotateAction, SIGNAL(toggled(bool)), this, SLOT(rotateImages(bool)));
-    effectMenu->addAction(rotateAction);
 
     QMenu *toolsMenu = menuBar()->addMenu(tr("&Tools"));
 
@@ -151,38 +145,6 @@ void Browser::highlightAllLinks()
     view->page()->mainFrame()->evaluateJavaScript(code);
 }
 
-void Browser::rotateImages(bool invert)
-{
-    QString code;
-    if (invert)
-        code = "$('img').each( function () { $(this).css('-webkit-transition', '-webkit-transform 2s'); $(this).css('-webkit-transform', 'rotate(180deg)') } )";
-    else
-        code = "$('img').each( function () { $(this).css('-webkit-transition', '-webkit-transform 2s'); $(this).css('-webkit-transform', 'rotate(0deg)') } )";
-    view->page()->mainFrame()->evaluateJavaScript(code);
-}
-
-void Browser::removeGifImages()
-{
-    QString code = "$('[src*=gif]').remove()";
-    view->page()->mainFrame()->evaluateJavaScript(code);
-}
-void Browser::removeInlineFrames()
-{
-    QString code = "$('iframe').remove()";
-    view->page()->mainFrame()->evaluateJavaScript(code);
-}
-
-void Browser::removeObjectElements()
-{
-    QString code = "$('object').remove()";
-    view->page()->mainFrame()->evaluateJavaScript(code);
-}
-
-void Browser::removeEmbeddedElements()
-{
-    QString code = "$('embed').remove()";
-    view->page()->mainFrame()->evaluateJavaScript(code);
-}
 void Browser::openLink(const QUrl &url)
 {
     QWebView* m_webView = new QWebView(this);
@@ -221,8 +183,8 @@ void Browser::onTabTimeOut()
 
 void Browser::onLinkTimeOut()
 {
-    view->back();
-//    CommonUtils::sleep(3000);
+//    view->back();//don't back
+//  CommonUtils::sleep(3000);
     shouldBack = false;
     emit searchFinished();
 }
@@ -230,79 +192,48 @@ void Browser::onLinkTimeOut()
 void Browser::startSearch()
 {
    QString url = view->url().toString();
-   if (url.startsWith(tr("http://m.baidu.com")))
-       startSearchForMBaidu();
-   else if (url.startsWith("https://www.baidu.com") || url.startsWith("http://www.baidu.com"))
-       startSearchForBaidu();
+   if (url.endsWith("/")) url = url.left(url.size() - 1);
+   if (engineConfigMap.contains(url))
+       searchEngineKey = url;
+   else
+   {
+       qDebug() << "not set in config.ini set " << url <<" into file";
+       searchEngineKey = "default";
+   }
+   startFillKeyWord();
 }
 
-void Browser::startSearchForBaidu()
+void Browser::startFillKeyWord()
 {
-    QString inTextSelector = "#kw";
+    QString textSelecter = engineConfigMap[searchEngineKey].inputText;
     QString keyWord = keyWordEdit->text();
-    QWebElement element = view->page()->mainFrame()->findFirstElement(inTextSelector);
+    QWebElement element = view->page()->mainFrame()->findFirstElement(textSelecter);
     element.setAttribute("value", keyWord);
-    QTimer::singleShot(3000, this, SLOT(baiduSubmitButtonClick()));
+    QTimer::singleShot(3000, this, SLOT(startSubmit()));
 }
 
-void Browser::startSearchForMBaidu()
+void Browser::startSubmit()
 {
-    QString inTextSelector = "input[type='text']";
-    QString keyWord = keyWordEdit->text();
-    QWebElement element = view->page()->mainFrame()->findFirstElement(inTextSelector);
-    element.setAttribute("value", keyWord);
-    QTimer::singleShot(3000, this, SLOT(mBaiduSubmitButtonClick()));
-}
-
-void Browser::baseSearchAction(const QString &textSelector, const QString &submitSelector)
-{
-    QString inTextSelector = textSelector.isEmpty() ? "input[type='text']" : textSelector;
-    QString inSubmitSelector = submitSelector.isEmpty() ? "input[type=submit]" : submitSelector;
-    QString keyWord = keyWordEdit->text();
-    QWebElement element = view->page()->mainFrame()->findFirstElement(inTextSelector);
-    element.setAttribute("value", keyWord);
-
-    element = view->page()->mainFrame()->findFirstElement(inSubmitSelector);
+    QString submitSelector = engineConfigMap[searchEngineKey].inputSubmit;
+    QWebElement element = view->page()->mainFrame()->findFirstElement(submitSelector);
     qDebug() << element.geometry().center();
     QPoint elemPos = element.geometry().center();
     buttonClick(elemPos);
+    QTimer::singleShot(5000, this, SLOT(startHrefClick()));
 }
 
-void Browser::baiduSubmitButtonClick()
+void Browser::startHrefClick()
 {
-    QString inSubmitSelector = "input[type=submit]";
-    QWebElement element = view->page()->mainFrame()->findFirstElement(inSubmitSelector);
-    qDebug() << element.geometry().center();
-    QPoint elemPos = element.geometry().center();
-    buttonClick(elemPos);
-    QTimer::singleShot(5000, this, SLOT(hrefClick()));
+    QString hrefSelector = engineConfigMap[searchEngineKey].hrefLink;
+    baseHrefClick(hrefSelector);
+    shouldBack = true;
 }
 
-void Browser::mBaiduSubmitButtonClick()
-{
-    QString inSubmitSelector = "input[type=submit]";
-    QWebElement element = view->page()->mainFrame()->findFirstElement(inSubmitSelector);
-    qDebug() << element.geometry().center();
-    QPoint elemPos = element.geometry().center();
-    buttonClick(elemPos);
-    QTimer::singleShot(5000, this, SLOT(mHrefClick()));
-}
 
 Browser::~Browser()
 {
     delete mutex;
     delete list;
-}
-
-void Browser::hrefClick()
-{
-    baseHrefClick(".c-container .t a[href]");
-}
-void Browser::mHrefClick()
-{
-    baseHrefClick(".resitem a[href]");
-    shouldBack = true;
-
 }
 
 void Browser::baseHrefClick(const QString &lickItemSelector)
@@ -439,5 +370,12 @@ void Browser::checkAndEmitRealtimeInfo()
 void Browser::stopSearch()
 {
     isStop = true;
-    //view->stop();
+    //TODO check if stop the view
+    view->stop();
+}
+void Browser::initConfig()
+{
+    this->engineConfigMap = CommonUtils::getEngineConfigs();
+    qDebug() << engineConfigMap.keys();
+//    qDebug() << engineConfigMap["default"].hrefLink;
 }

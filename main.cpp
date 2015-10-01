@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     qDebug() << "============first init=============";
     DBUtil::clearTables();
     DBUtil::initTables();
-    DBUtil::initValues();
+//    DBUtil::initValues();
     DBUtil::test();
     qDebug() << "============end====================";
 #endif

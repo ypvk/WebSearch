@@ -2,6 +2,8 @@
 #define BROWSER_H
 
 #include <QMainWindow>
+#include <QMap>
+#include "engineconfig.h"
 #include "clickinfo.h"
 
 class QWebView;
@@ -36,36 +38,27 @@ protected slots:
      void slotSourceDownloaded();
 
      void highlightAllLinks();
-     void rotateImages(bool invert);
-     void removeGifImages();
-     void removeInlineFrames();
-     void removeObjectElements();
-     void removeEmbeddedElements();
      void openLink(const QUrl& url);
      void loadUrl(const QUrl& url);
      void onTabTimeOut();
      void onLinkTimeOut();
      void startSearch();
-     void startSearchForBaidu();
-     void startSearchForMBaidu();
+     void startFillKeyWord();
+     void startSubmit();
+     void startHrefClick();
      void onSearchFinished();
-     void hrefClick();
-     void mHrefClick();
-     void baiduSubmitButtonClick();
-     void mBaiduSubmitButtonClick();
 private:
      void buttonClick(const QPoint& pos);
      void clearCookie();
      void baseHrefClick(const QString& lickItemSelector);
-     void baseSearchAction(const QString& textSelector, const QString& submitSelector);
      void checkAndEmitRealtimeInfo();
+     void initConfig();
 
  private:
      QString jQuery;
      QWebView *view;
      QLineEdit *locationEdit;
      QLineEdit *keyWordEdit;
-     QAction *rotateAction;
      QTabWidget* tabwidget;
      int progress;
      QMutex* mutex;
@@ -73,9 +66,6 @@ private:
      bool shouldBack;
      NetWorkCookieJar* cookieJar;
      //value
-//     QList<QString> engines;
-//     QList<QString> urls;
-//     QList<QString> keyWords;
      QList<ClickInfo> clickInfos;
      //current
 //     ClickInfo currentClickInfo;
@@ -90,6 +80,9 @@ private:
 
      bool isStop;
      bool searchFlag;
+     //engine config map
+     QMap<QString, EngineConfig> engineConfigMap;
+     QString searchEngineKey;
 };
 
 #endif // BROWSER_H

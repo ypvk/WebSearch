@@ -44,3 +44,23 @@ QString CommonUtils::getMyIp()
     }
     return myipv4Address;
 }
+
+QMap<QString, EngineConfig> CommonUtils::getEngineConfigs()
+{
+    QMap<QString, EngineConfig> engineConfigMap;
+    QSettings *configIniRead = new QSettings("config.ini", QSettings::IniFormat);
+    QStringList engineGroups = configIniRead->childGroups();
+    for(int i = 0; i < engineGroups.size(); i++) {
+        QString hostNameKey = engineGroups.at(i) + "/hostname";
+        QString inputTextKey = engineGroups.at(i) + "/input_text";
+        QString inputSubmitKey = engineGroups.at(i) + "/input_submit";
+        QString hreflinkKey = engineGroups.at(i) + "/href";
+        QString hostName = configIniRead->value(hostNameKey).toString();
+        QString inputText = configIniRead->value(inputTextKey).toString();
+        QString inputSubmit = configIniRead->value(inputSubmitKey).toString();
+        QString hrefLink = configIniRead->value(hreflinkKey).toString();
+        engineConfigMap[hostName] = EngineConfig(hostName, inputText, inputSubmit, hrefLink);
+    }
+    delete configIniRead;
+    return engineConfigMap;
+}

@@ -3,7 +3,7 @@
 
 #include <QDialog>
 class QLabel;
-class QSpinBox;
+class QLineEdit;
 class QPushButton;
 
 class JobParamDialog : public QDialog
@@ -16,7 +16,7 @@ public:
 
 private:
     QLabel * clickNumLabel;
-    QSpinBox* clickNum;
+    QLineEdit* clickNum;
     QPushButton* okButton;
     QPushButton* cancelButton;
 
