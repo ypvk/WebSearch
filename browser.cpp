@@ -171,6 +171,7 @@ void Browser::loadUrl(const QUrl &url)
 void Browser::onTabTimeOut()
 {
     mutex->lock();
+    view->stop();
     int index = list->first();
     list->removeFirst();
     QWidget* webView = tabwidget->widget(index);
@@ -185,13 +186,14 @@ void Browser::onLinkTimeOut()
 {
 //    view->back();//don't back
 //  CommonUtils::sleep(3000);
+    view->stop();//stop recieve data
     shouldBack = false;
     emit searchFinished();
 }
 
 void Browser::startSearch()
 {
-   QString url = view->url().toString();
+   QString url = currentUrl;
    if (url.endsWith("/")) url = url.left(url.size() - 1);
    if (engineConfigMap.contains(url))
        searchEngineKey = url;
