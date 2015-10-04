@@ -140,6 +140,7 @@ void Browser::finishLoading(bool)
     if (searchFlag)
     {
         searchFlag = false;
+        timer->stop();
         startSearch();
     }
 }
@@ -165,8 +166,11 @@ void Browser::openLink(const QUrl &url)
 
 void Browser::loadUrl(const QUrl &url)
 {
-    view->load(url);
-    keyWordEdit->setEnabled(false);
+    if (!url.toString().contains("search.yahoo.com"))
+    {
+        view->load(url);
+        keyWordEdit->setEnabled(false);
+    }
     if (shouldBack) {
         QTimer::singleShot(5000, this, SLOT(onLinkTimeOut()));
     }
@@ -353,6 +357,7 @@ void Browser::onSearchFinished()
 void Browser::checkAndEmitRealtimeInfo()
 {
     if (currentUrl != "") {//click successfull
+        if (clickInfos.isEmpty()) return;//return if the clickinfos is empty
         UpdateInfo updateInfo(currentEngine,
                               currentUrl,
                               currentKeyWord,
