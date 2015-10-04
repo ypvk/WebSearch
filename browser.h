@@ -12,6 +12,7 @@ class QUrl;
 class QMutex;
 class NetWorkCookieJar;
 class UpdateInfo;
+class QTimer;
 //class ClickInfo;
 
 class Browser : public QMainWindow
@@ -47,6 +48,7 @@ protected slots:
      void startSubmit();
      void startHrefClick();
      void onSearchFinished();
+     void checkIfLoadFinished();
 private:
      void buttonClick(const QPoint& pos);
      void clearCookie();
@@ -83,6 +85,8 @@ private:
      //engine config map
      QMap<QString, EngineConfig> engineConfigMap;
      QString searchEngineKey;
+
+     QTimer* timer;
 };
 
 #endif // BROWSER_H

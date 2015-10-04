@@ -8,6 +8,7 @@
 #include <QtGui>
 #include <QtWebKit>
 #include <QTabWidget>
+#include <QTimer>
 
 Browser::Browser(QWidget *parent) :
         QMainWindow(parent)
@@ -80,7 +81,10 @@ Browser::Browser(QWidget *parent) :
 //    view->load(QUrl("http://www.baidu.com"));
     keyWordEdit->setEnabled(false);
     isStop = true;
-
+    //set qtimer
+    timer = new QTimer(this);
+    timer->setSingleShot(true);
+    connect(timer, SIGNAL(timeout()), this, SLOT(checkIfLoadFinished()));
 }
 void Browser::viewSource()
 {
@@ -293,6 +297,7 @@ void Browser::search(const QList<ClickInfo>& clickInfos)
 }
 void Browser::onSearchFinished()
 {
+    timer->stop();
     checkAndEmitRealtimeInfo();
     clearCookie();
     if (isStop || clickInfos.isEmpty())
@@ -312,6 +317,8 @@ void Browser::onSearchFinished()
     currentEngine = engine;
     currentUrl = url;
     currentKeyWord = keyWord;
+    currentLinkName = "";
+    currentLinkUrl = "";
     //set proxy
     int index = proxys.count() - currentClickNum % (proxys.count() + 1);
     if (index == proxys.count())
@@ -339,8 +346,8 @@ void Browser::onSearchFinished()
     view->load(currentUrl);
     keyWordEdit->setEnabled(true);
     keyWordEdit->setText(currentKeyWord);
-//    CommonUtils::sleep(5000);
-//    startSearch();
+    //set timeout for the url is not load successfull
+    timer->start(8000);
 }
 
 void Browser::checkAndEmitRealtimeInfo()
@@ -375,6 +382,15 @@ void Browser::stopSearch()
     //TODO check if stop the view
     view->stop();
 }
+void Browser::checkIfLoadFinished()
+{
+    if (searchFlag != false)
+    {
+        view->stop();
+        emit this->searchFinished();
+    }
+}
+
 void Browser::initConfig()
 {
     this->engineConfigMap = CommonUtils::getEngineConfigs();
