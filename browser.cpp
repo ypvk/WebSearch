@@ -180,6 +180,7 @@ void Browser::loadUrl(const QUrl &url)
 void Browser::onTabTimeOut()
 {
     mutex->lock();
+    searchFlag = false;
     view->stop();
     int index = list->first();
     list->removeFirst();
@@ -195,8 +196,10 @@ void Browser::onLinkTimeOut()
 {
 //    view->back();//don't back
 //  CommonUtils::sleep(3000);
-    view->stop();//stop recieve data
+    searchFlag = false;
     shouldBack = false;
+    //set before stop
+    view->stop();//stop recieve data
     qDebug() << "link clicked emit searchFinished";
     emit searchFinished();
 }
@@ -389,6 +392,7 @@ void Browser::stopSearch()
 {
     isStop = true;
     //TODO check if stop the view
+    searchFlag = false;
     view->stop();
 }
 void Browser::checkIfLoadFinished()
