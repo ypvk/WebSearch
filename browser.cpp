@@ -85,6 +85,7 @@ Browser::Browser(QWidget *parent) :
     timer = new QTimer(this);
     timer->setSingleShot(true);
     connect(timer, SIGNAL(timeout()), this, SLOT(checkIfLoadFinished()));
+    connect(view, SIGNAL(loadFinished(bool)), timer, SLOT(stop()));
 }
 void Browser::viewSource()
 {
@@ -160,7 +161,7 @@ void Browser::openLink(const QUrl &url)
     int index = tabwidget->addTab((QWidget*)m_webView, tr("triger view"));
     list->append(index);
     mutex->unlock();
-    QTimer::singleShot(5000, this, SLOT(onTabTimeOut()));
+    QTimer::singleShot(3000, this, SLOT(onTabTimeOut()));
     tabwidget->setCurrentIndex(index);
 }
 
@@ -172,7 +173,7 @@ void Browser::loadUrl(const QUrl &url)
         keyWordEdit->setEnabled(false);
     }
     if (shouldBack) {
-        QTimer::singleShot(5000, this, SLOT(onLinkTimeOut()));
+        QTimer::singleShot(3000, this, SLOT(onLinkTimeOut()));
     }
 }
 
@@ -196,6 +197,7 @@ void Browser::onLinkTimeOut()
 //  CommonUtils::sleep(3000);
     view->stop();//stop recieve data
     shouldBack = false;
+    qDebug() << "link clicked emit searchFinished";
     emit searchFinished();
 }
 
@@ -219,7 +221,7 @@ void Browser::startFillKeyWord()
     QString keyWord = keyWordEdit->text();
     QWebElement element = view->page()->mainFrame()->findFirstElement(textSelecter);
     element.setAttribute("value", keyWord);
-    QTimer::singleShot(3000, this, SLOT(startSubmit()));
+    QTimer::singleShot(1000, this, SLOT(startSubmit()));
 }
 
 void Browser::startSubmit()
@@ -229,14 +231,14 @@ void Browser::startSubmit()
     qDebug() << element.geometry().center();
     QPoint elemPos = element.geometry().center();
     buttonClick(elemPos);
-    QTimer::singleShot(5000, this, SLOT(startHrefClick()));
+    QTimer::singleShot(4000, this, SLOT(startHrefClick()));
 }
 
 void Browser::startHrefClick()
 {
     QString hrefSelector = engineConfigMap[searchEngineKey].hrefLink;
     baseHrefClick(hrefSelector);
-    shouldBack = true;
+
 }
 
 
@@ -250,6 +252,7 @@ void Browser::baseHrefClick(const QString &lickItemSelector)
 {
     QWebElementCollection elements = view->page()->mainFrame()->findAllElements(lickItemSelector);
     if (elements.count() == 0) {//don't have elements just return
+        qDebug() << "href none emit searchFinished";
         emit searchFinished();
         return;
     }
@@ -267,6 +270,7 @@ void Browser::baseHrefClick(const QString &lickItemSelector)
     QPoint const scrollPos=frame->scrollPosition();
 
     buttonClick(elemPos-scrollPos);
+    shouldBack = true;
 }
 
 void Browser::buttonClick(const QPoint& pos)
@@ -351,7 +355,7 @@ void Browser::onSearchFinished()
     keyWordEdit->setEnabled(true);
     keyWordEdit->setText(currentKeyWord);
     //set timeout for the url is not load successfull
-    timer->start(8000);
+    timer->start(6000);
 }
 
 void Browser::checkAndEmitRealtimeInfo()
@@ -391,7 +395,9 @@ void Browser::checkIfLoadFinished()
 {
     if (searchFlag != false)
     {
+        searchFlag = false;
         view->stop();
+        qDebug() << "check add searchFinished";
         emit this->searchFinished();
     }
 }

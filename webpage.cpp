@@ -21,5 +21,13 @@ bool WebPage::acceptNavigationRequest(QWebFrame *frame, const QNetworkRequest &r
         qDebug() << "other===================" << type;
         qDebug() << request.url().toString();
     }
-    return QWebPage::acceptNavigationRequest(frame, request, type);
+    if (request.url().toString().contains("search.yahoo.com"))
+    {
+        qDebug() << "exit url " << request.url().toString();
+        return false;
+    }
+    else
+    {
+        return QWebPage::acceptNavigationRequest(frame, request, type);
+    }
 }
