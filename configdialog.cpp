@@ -2,6 +2,7 @@
 #include "dbutil.h"
 #include <QtGui>
 #include <QtSql>
+#include <QSettings>
 
 ConfigDialog::ConfigDialog(QWidget *parent) :
     QDialog(parent)
@@ -9,6 +10,7 @@ ConfigDialog::ConfigDialog(QWidget *parent) :
     setupGui();
     setupModel();
     setupConnection();
+    loadSettings();
 }
 
 void ConfigDialog::setupGui()
@@ -445,4 +447,35 @@ void ConfigDialog::showMessage(const QString& msg)
 void ConfigDialog::showSuccessMessage(const QString &msg)
 {
     QMessageBox::information(this, tr("Success"), msg);
+}
+void ConfigDialog::loadSettings()
+{
+    bool radio = settings.value("proxyApi/radio").toBool();
+    QString value = settings.value("proxyApi/value").toString();
+    qDebug() << " load "<<radio;
+    radioButton->setChecked(radio);
+    proxyApiValue->setText(value);
+}
+void ConfigDialog::saveSettings()
+{
+    bool radio = radioButton->isChecked();
+    QString value = proxyApiValue->text();
+    qDebug() << "save" << radio;
+    settings.setValue("proxyApi/radio", radio);
+    settings.setValue("proxyApi/value", value);
+}
+
+void ConfigDialog::closeEvent(QCloseEvent *event)
+{
+    saveSettings();
+    event->accept();
+}
+
+bool ConfigDialog::isUseProxyApi()
+{
+    return radioButton->isChecked();
+}
+QString ConfigDialog::getProxyApiValue()
+{
+    return proxyApiValue->text();
 }

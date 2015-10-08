@@ -16,7 +16,11 @@
 #include <QtCore/QString>
 #include <QtSql>
 #include <QtGui>
-#include<QMessageBox>
+#include <QMessageBox>
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QUrl>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -32,8 +36,6 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
-    delete browser;
-
 }
 
 void MainWindow::setupGui()
@@ -92,10 +94,12 @@ void MainWindow::setupGui()
 
     toolBar = this->addToolBar(tr("main tool bar"));
     //add browser
-    browser = new Browser();
+//    browser = new Browser(this);
+    configDialog = new ConfigDialog(this);
     isRunning = false;
     this->resize(800, 400);
     this->setWindowTitle("Websearch");
+    networkManager = new QNetworkAccessManager(this);
 }
 
 void MainWindow::setupAction()
@@ -117,16 +121,15 @@ void MainWindow::setupConnection()
 {
     connect(startJobAction, SIGNAL(triggered()), this, SLOT(onJobStateChange()));
     connect(stopJobAction, SIGNAL(triggered()), this, SLOT(onJobStateChange()));
-    connect(browser, SIGNAL(updateClickInfo(UpdateInfo)), this, SLOT(onJobUpdate(UpdateInfo)));
-    connect(browser, SIGNAL(jobFinished()), this, SLOT(onJobFinished()));
+//    connect(browser, SIGNAL(updateClickInfo(UpdateInfo)), this, SLOT(onJobUpdate(UpdateInfo)));
+//    connect(browser, SIGNAL(jobFinished()), this, SLOT(onJobFinished()));
     connect(configAction, SIGNAL(triggered()), this, SLOT(onConfigActionTrigger()));
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(onAboutActiontrigger()));
 }
 
 void MainWindow::onConfigActionTrigger()
 {
-    ConfigDialog dialog;
-    dialog.exec();
+    configDialog->exec();
 }
 void MainWindow::onAboutActiontrigger()
 {
@@ -160,9 +163,9 @@ void MainWindow::onJobStateChange()
         JobParamDialog dialog;
         if (dialog.exec() == QDialog::Accepted) {
             startJobAction->setEnabled(false);
-            browser->show();
-            browser->move(this->pos() + QPoint(200, 200));
-            startSearchJob(dialog.getClickNum());
+//            browser->show();
+//            browser->move(this->pos() + QPoint(200, 200));
+            startSearchJob(dialog.getClickNum(), dialog.getThreadNum());
             isRunning = true;
             stopJobAction->setEnabled(true);
         }
@@ -175,8 +178,8 @@ void MainWindow::onJobStateChange()
 void MainWindow::onJobFinished()
 {
     stopJobAction->setEnabled(false);
-    browser->stopSearch();
-    browser->hide();
+//    browser->stopSearch();
+//    browser->hide();
     isRunning = false;
     startJobAction->setEnabled(true);
 }
@@ -195,13 +198,18 @@ void MainWindow::setupModel()
     clickView->setModel(clickModel);
 
 }
-void MainWindow::startSearchJob(int clickNum)
+void MainWindow::startSearchJob(int clickNum, int threadNum)
 {
     QList<QString> keyWords = DBUtil::getKeyWords();
     QList<EngineInfo> engineInfos = DBUtil::getEngineInfos();
-    QList<QPair<QString, int> > proxys = DBUtil::getProxys();
-    qDebug() << keyWords;
-    qDebug() << proxys;
+    if (configDialog->isUseProxyApi())
+    {
+        queryProxys(configDialog->getProxyApiValue());
+    }
+    else
+    {
+        proxys = DBUtil::getProxys();
+    }
     if (keyWords.isEmpty() || engineInfos.isEmpty())
     {
         qDebug() << "empty job";
@@ -214,5 +222,59 @@ void MainWindow::startSearchJob(int clickNum)
     {
         clickInfos << ClickInfo(engineInfos.at(i), keyWords, proxys, clickNum);
     }
-    browser->search(clickInfos);
+    for(int i = 0; i < threadNum; i++)
+    {
+        Browser* browser = new Browser();
+        connect(browser, SIGNAL(updateClickInfo(UpdateInfo)), this, SLOT(onJobUpdate(UpdateInfo)));
+        connect(browser, SIGNAL(jobFinished()), this, SLOT(onJobFinished()));
+        browser->show();
+        browser->move(this->pos() + QPoint(200, 200));
+        browsers.append(browser);
+        browser->search(clickInfos);
+    }
+}
+
+void MainWindow::queryProxys(const QString& url)
+{
+    proxys.clear();
+    QNetworkRequest request;
+    QUrl _url(url);
+    request.setUrl(_url);
+    QNetworkReply* reply = networkManager->get(request);
+    QEventLoop loop;
+    QTimer timer;
+    timer.setSingleShot(true);
+    connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
+    connect(&timer, SIGNAL(timeout()), &loop, SLOT(quit()));
+    timer.start(5000);
+    loop.exec();
+    timer.stop();
+    if (reply->isFinished())
+    {
+        if (reply->error() == QNetworkReply::NoError)
+        {
+            QString value = reply->readAll();
+            QStringList values = value.split("\n");
+            for(int i = 0; i < values.count(); i++)
+            {
+                QString proxyUrl = values.at(i).trimmed();
+                if (proxyUrl.contains(":") && !proxyUrl.isEmpty())
+                {
+                    QStringList urlAndPort = proxyUrl.split(":");
+                    proxys << QPair<QString, int>(urlAndPort.at(0), urlAndPort.at(1).toInt());
+                }
+
+            }
+
+        }
+        else
+        {
+            qDebug() << "error data";
+        }
+    }
+    else
+    {
+        networkManager->setNetworkAccessible(QNetworkAccessManager::NotAccessible);
+        qDebug() << "timeout";
+    }
 }
