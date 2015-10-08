@@ -33,19 +33,19 @@ void ConfigDialog::setupGui()
     keyWordWidget = new QWidget(this);
     proxyWidget = new QWidget(this);
 
-    loadForSearchButton = new QPushButton(tr("load"), this);
-    loadForKeyWordButton = new QPushButton(tr("load"), this);
-    loadForProxyButton = new QPushButton(tr("load"), this);
-    removeSelectedForSearchButton = new QPushButton(tr("remove selected"), this);
-    removeSelectedForKeyWordButton = new QPushButton(tr("remove selected"), this);
-    removeSelectedForProxyButton = new QPushButton(tr("remove selected"), this);
-    submitChangeForSearchButton = new QPushButton(tr("submit"), this);
-    submitChangeForKeyWordButton = new QPushButton(tr("submit"), this);
-    submitChangeForProxyButton = new QPushButton(tr("submit"), this);
+    loadForSearchButton = new QPushButton(tr("导入"), this);
+    loadForKeyWordButton = new QPushButton(tr("导入"), this);
+    loadForProxyButton = new QPushButton(tr("导入"), this);
+    removeSelectedForSearchButton = new QPushButton(tr("删除选中"), this);
+    removeSelectedForKeyWordButton = new QPushButton(tr("删除选中"), this);
+    removeSelectedForProxyButton = new QPushButton(tr("删除选中"), this);
+    submitChangeForSearchButton = new QPushButton(tr("提交更改"), this);
+    submitChangeForKeyWordButton = new QPushButton(tr("提交更改"), this);
+    submitChangeForProxyButton = new QPushButton(tr("提交更改"), this);
 
 
-    searchEngineGroupBox = new QGroupBox(tr("search engine"), this);
-    searchEngineOperationBox = new QGroupBox(tr("operation"), this);
+    searchEngineGroupBox = new QGroupBox(tr("搜索引擎"), this);
+    searchEngineOperationBox = new QGroupBox(tr("操作"), this);
 
     QVBoxLayout* searchEngineWidgetLayout = new QVBoxLayout;
     searchEngineWidgetLayout->addWidget(searchEngineGroupBox);
@@ -62,8 +62,8 @@ void ConfigDialog::setupGui()
     searchEngineOperationBox->setLayout(seOperationBoxLayout);
 
 
-    keyWordGroupBox = new QGroupBox(tr("key word"), this);
-    keyWordOperationBox = new QGroupBox(tr("operation"), this);
+    keyWordGroupBox = new QGroupBox(tr("关键词"), this);
+    keyWordOperationBox = new QGroupBox(tr("操作"), this);
 
     QVBoxLayout* keyWordWidgetLayout = new QVBoxLayout;
     keyWordWidgetLayout->addWidget(keyWordGroupBox);
@@ -80,17 +80,24 @@ void ConfigDialog::setupGui()
     kwOperationBoxLayout->addWidget(submitChangeForKeyWordButton);
     keyWordOperationBox->setLayout(kwOperationBoxLayout);
     //proxy
-    proxyGroupBox = new QGroupBox(tr("proxy"), this);
-    proxyOperationBox = new QGroupBox(tr("operation"), this);
+    proxyGroupBox = new QGroupBox(tr("代理"), this);
+    proxyOperationBox = new QGroupBox(tr("操作"), this);
 
     QVBoxLayout* proxyWidgetLayout = new QVBoxLayout;
     proxyWidgetLayout->addWidget(proxyGroupBox);
     proxyWidgetLayout->addWidget(proxyOperationBox);
     proxyWidget->setLayout(proxyWidgetLayout);
 
-    QHBoxLayout* pxGroupBoxLayout = new QHBoxLayout;
+    QVBoxLayout* pxGroupBoxLayout = new QVBoxLayout;
     pxGroupBoxLayout->addWidget(proxyView);
     proxyGroupBox->setLayout(pxGroupBoxLayout);
+    radioButton = new QRadioButton(tr("API"));
+    proxyApiValue = new QLineEdit(this);
+    QHBoxLayout* proxyApiLayout = new QHBoxLayout;
+    proxyApiLayout->addWidget(radioButton);
+    proxyApiLayout->addWidget(proxyApiValue);
+    pxGroupBoxLayout->addLayout(proxyApiLayout);
+
 
     QHBoxLayout* pxOperationBoxLayout = new QHBoxLayout;
     pxOperationBoxLayout->addWidget(loadForProxyButton);
@@ -99,9 +106,9 @@ void ConfigDialog::setupGui()
     proxyOperationBox->setLayout(pxOperationBoxLayout);
 
 
-    mainWidget->addTab(searchEngineWidget, tr("search engine config"));
-    mainWidget->addTab(keyWordWidget, tr("key word config"));
-    mainWidget->addTab(proxyWidget, tr("proxy widget"));
+    mainWidget->addTab(searchEngineWidget, tr("搜索引擎配置"));
+    mainWidget->addTab(keyWordWidget, tr("关键词配置"));
+    mainWidget->addTab(proxyWidget, tr("代理配置"));
 
     QHBoxLayout* mainLayout = new QHBoxLayout;
     mainLayout->addWidget(mainWidget);
@@ -135,7 +142,7 @@ void ConfigDialog::setupModel()
     proxyModel->select();
     proxyModel->setHeaderData(0, Qt::Horizontal, QObject::tr("ID"));
     proxyModel->setHeaderData(1, Qt::Horizontal, QObject::tr("Url"));
-    proxyModel->setHeaderData(1, Qt::Horizontal, QObject::tr("Port"));
+    proxyModel->setHeaderData(2, Qt::Horizontal, QObject::tr("Port"));
     proxyView->setModel(proxyModel);
 }
 
@@ -150,6 +157,19 @@ void ConfigDialog::setupConnection()
     connect(submitChangeForSearchButton, SIGNAL(clicked()), this, SLOT(onSubmitChangeForSearchButtonClicked()));
     connect(submitChangeForKeyWordButton, SIGNAL(clicked()), this, SLOT(onSubmitChangeForKeyWordButtonClicked()));
     connect(submitChangeForProxyButton, SIGNAL(clicked()), this, SLOT(onSubmitChangeForProxyButtonClicked()));
+    connect(radioButton, SIGNAL(toggled(bool)), this, SLOT(onRaidoButtonToogled(bool)));
+}
+
+void ConfigDialog::onRaidoButtonToogled(bool state)
+{
+    if (state == true) {
+        proxyView->setEnabled(false);
+        proxyApiValue->setEnabled(true);
+    }
+    else {
+        proxyView->setEnabled(true);
+        proxyApiValue->setEnabled(false);
+    }
 }
 
 void ConfigDialog::onLoadForKeyWordButtonClicked()
@@ -221,7 +241,7 @@ void ConfigDialog::onLoadForProxyButtonClicked()
         while(!in.atEnd())
         {
             QString line = in.readLine().trimmed();
-            QStringList words = line.split(QRegExp("\\s+|\\t+"));
+            QStringList words = line.split(QRegExp("\\s+|\\t+|:|："));
             qDebug() << words;
             ips << words.at(0);
             ports << words.at(1).toInt();

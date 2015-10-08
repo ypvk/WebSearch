@@ -41,8 +41,8 @@ void MainWindow::setupGui()
     splitter = new QSplitter(this);
     this->setCentralWidget(splitter);
 
-    realTimeGroupBox = new QGroupBox(tr("realtime info"), this);
-    infoGroupBox = new QGroupBox(tr("click info"), this);
+    realTimeGroupBox = new QGroupBox(tr("实时信息"), this);
+    infoGroupBox = new QGroupBox(tr("点击信息"), this);
     splitter->addWidget(realTimeGroupBox);
     splitter->addWidget(infoGroupBox);
     splitter->setStretchFactor(1, 70);
@@ -58,15 +58,15 @@ void MainWindow::setupGui()
 
 
     QGridLayout* layout2 = new QGridLayout;
-    searchEngineLabel = new QLabel(tr("search engine"), this);
+    searchEngineLabel = new QLabel(tr("搜索引擎"), this);
     searchEngineLabelValue = new QLineEdit(this);
-    searchUrlLabel = new QLabel(tr("search engine url"), this);
+    searchUrlLabel = new QLabel(tr("地址"), this);
     searchUrlLabelValue = new QLineEdit(this);
-    keyWordLabel = new QLabel(tr("key word"), this);
+    keyWordLabel = new QLabel(tr("关键词"), this);
     keyWordLabelValue = new QLineEdit(this);
-    clickLinkLabel = new QLabel(tr("click link name"), this);
+    clickLinkLabel = new QLabel(tr("链接名"), this);
     clickLinkLabelValue = new QLineEdit(this);
-    clickUrlLabel = new QLabel(tr("click link url"), this);
+    clickUrlLabel = new QLabel(tr("链接地址"), this);
     clickUrlLabelValue = new QLineEdit(this);
     ipLabel = new QLabel(tr("ip"), this);
     ipValue = new QLineEdit(this);
@@ -95,14 +95,15 @@ void MainWindow::setupGui()
     browser = new Browser();
     isRunning = false;
     this->resize(800, 400);
+    this->setWindowTitle("Websearch");
 }
 
 void MainWindow::setupAction()
 {
-    startJobAction = new QAction(tr("startJob"), this);
-    stopJobAction = new QAction(tr("stopJob"), this);
-    configAction = new QAction(tr("config"), this);
-    aboutAction = new QAction(tr("about"), this);
+    startJobAction = new QAction(tr("开始任务"), this);
+    stopJobAction = new QAction(tr("停止任务"), this);
+    configAction = new QAction(tr("配置"), this);
+    aboutAction = new QAction(tr("关于"), this);
 
     stopJobAction->setEnabled(false);
 

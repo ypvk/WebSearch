@@ -4,15 +4,15 @@
 JobParamDialog::JobParamDialog(QWidget *parent) :
     QDialog(parent)
 {
-    clickNumLabel = new QLabel(tr("click num"), this);
+    clickNumLabel = new QLabel(tr("点击次数"), this);
     clickNum = new QLineEdit(this);
     clickNum->setText("1");
     QVBoxLayout* mainLayout = new QVBoxLayout;
     QHBoxLayout* layout = new QHBoxLayout;
     layout->addWidget(clickNumLabel);
     layout->addWidget(clickNum);
-    okButton = new QPushButton(tr("OK"), this);
-    cancelButton = new QPushButton(tr("Cancel"), this);
+    okButton = new QPushButton(tr("确定"), this);
+    cancelButton = new QPushButton(tr("取消"), this);
     QHBoxLayout* layout1 = new QHBoxLayout;
     layout1->addWidget(okButton);
     layout1->addWidget(cancelButton);

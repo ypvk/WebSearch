@@ -9,6 +9,8 @@ class QSqlTableModel;
 class QGroupBox;
 class QTabWidget;
 class QPushButton;
+class QRadioButton;
+class QLineEdit;
 
 class ConfigDialog : public QDialog
 {
@@ -32,6 +34,7 @@ protected slots:
     void onSubmitChangeForSearchButtonClicked();
     void onSubmitChangeForKeyWordButtonClicked();
     void onSubmitChangeForProxyButtonClicked();
+    void onRaidoButtonToogled(bool state);
 
 private:
 
@@ -66,6 +69,9 @@ private:
     QPushButton* submitChangeForSearchButton;
     QPushButton* submitChangeForKeyWordButton;
     QPushButton* submitChangeForProxyButton;
+
+    QRadioButton* radioButton;
+    QLineEdit* proxyApiValue;
 
 };
 

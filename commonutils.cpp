@@ -13,7 +13,7 @@ void CommonUtils::sleep(long time)
     t.start();
     while(t.elapsed()<2000) {
         QCoreApplication::processEvents();
-        usleep(10000);
+//        usleep(10000);
     }
 }
 
