@@ -32,6 +32,7 @@ private:
     void setupModel();
     void setupConnection();
     void startSearchJob(int clickNum, int threadNum);
+    void runSearchJob(int threadNum);
     void queryProxys(const QString& url);
 public slots:
     void onJobStateChange();
@@ -39,6 +40,7 @@ public slots:
     void onConfigActionTrigger();
     void onJobFinished();
     void onAboutActiontrigger();
+    void onJobFinishedById(int id);
 private:
     Ui::MainWindow *ui;
 
@@ -77,6 +79,10 @@ private:
     QNetworkAccessManager* networkManager;
     QList<QPair<QString, int> > proxys;
     QList<Browser*> browsers;
+
+    int clickNum;
+    int threadNum;
+    QList<int> finishedIds;
 };
 
 #endif // MAINWINDOW_H

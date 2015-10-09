@@ -20,12 +20,13 @@ class Browser : public QMainWindow
     Q_OBJECT
 public:
     explicit Browser(QWidget *parent = 0);
+    explicit Browser(QWidget* parent = 0, int id = 0);
     void search(const QList<ClickInfo>& clickInfos);
     ~Browser();
 signals:
      void searchFinished();
      void updateClickInfo(const UpdateInfo& updateInfo);
-     void jobFinished();
+     void jobFinished(int id);
 public slots:
      void stopSearch();
 protected slots:
@@ -50,6 +51,7 @@ protected slots:
      void onSearchFinished();
      void checkIfLoadFinished();
 private:
+     void init();
      void buttonClick(const QPoint& pos);
      void clearCookie();
      void baseHrefClick(const QString& lickItemSelector);
@@ -87,6 +89,9 @@ private:
      QString searchEngineKey;
 
      QTimer* timer;
+
+     //id
+     int id;
 };
 
 #endif // BROWSER_H

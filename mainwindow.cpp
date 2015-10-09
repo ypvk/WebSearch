@@ -172,6 +172,7 @@ void MainWindow::onJobStateChange()
         else return;
     }else
     {
+       this->clickNum = 1;
        this->onJobFinished();
     }
 }
@@ -182,6 +183,31 @@ void MainWindow::onJobFinished()
 //    browser->hide();
     isRunning = false;
     startJobAction->setEnabled(true);
+    //delete browser
+    foreach(Browser* browser, browsers)  {
+        delete browser;
+    }
+    browsers.clear();
+    finishedIds.clear();
+    this->clickNum = this->clickNum - 1;
+    if (this->clickNum != 0) {
+        runSearchJob(threadNum);
+    }
+}
+void MainWindow::onJobFinishedById(int id)
+{
+    Browser* browser = browsers.at(id);
+//    browsers.removeAt(id);
+    browser->close();
+    finishedIds.append(id);
+    if (finishedIds.count() == browsers.count())
+    {
+        finishedIds.clear();
+        this->onJobFinished();
+    }
+//    delete browser;
+//    if (browsers.isEmpty())
+//        this->onJobFinished();
 }
 
 void MainWindow::setupModel()
@@ -200,6 +226,46 @@ void MainWindow::setupModel()
 }
 void MainWindow::startSearchJob(int clickNum, int threadNum)
 {
+    this->clickNum = clickNum;
+    this->threadNum = threadNum;
+    runSearchJob(threadNum);
+//    QList<QString> keyWords = DBUtil::getKeyWords();
+//    QList<EngineInfo> engineInfos = DBUtil::getEngineInfos();
+//    if (configDialog->isUseProxyApi())
+//    {
+//        queryProxys(configDialog->getProxyApiValue());
+//    }
+//    else
+//    {
+//        proxys = DBUtil::getProxys();
+//    }
+//    if (keyWords.isEmpty() || engineInfos.isEmpty())
+//    {
+//        qDebug() << "empty job";
+//        this->onJobFinished();
+//        return;
+//    }
+//    //build clickInfo
+//    QList<ClickInfo> clickInfos;
+//    for (int i = 0; i < engineInfos.size(); i++)
+//    {
+//        clickInfos << ClickInfo(engineInfos.at(i), keyWords, proxys, clickNum);
+//    }
+//    for(int i = 0; i < threadNum; i++)
+//    {
+//        Browser* browser = new Browser(NULL, i);
+//        connect(browser, SIGNAL(updateClickInfo(UpdateInfo)), this, SLOT(onJobUpdate(UpdateInfo)));
+//        connect(browser, SIGNAL(jobFinished(int)), this, SLOT(onJobFinishedById(int)));
+//        browser->show();
+//        browser->move(this->pos() + QPoint(200, 200));
+//        browsers.append(browser);
+//        browser->search(clickInfos);
+//    }
+}
+void MainWindow::runSearchJob(int threadNum)
+{
+    //TODO change
+
     QList<QString> keyWords = DBUtil::getKeyWords();
     QList<EngineInfo> engineInfos = DBUtil::getEngineInfos();
     if (configDialog->isUseProxyApi())
@@ -216,17 +282,27 @@ void MainWindow::startSearchJob(int clickNum, int threadNum)
         this->onJobFinished();
         return;
     }
-    //build clickInfo
-    QList<ClickInfo> clickInfos;
-    for (int i = 0; i < engineInfos.size(); i++)
-    {
-        clickInfos << ClickInfo(engineInfos.at(i), keyWords, proxys, clickNum);
-    }
+    int deta = proxys.count() / threadNum;
+
     for(int i = 0; i < threadNum; i++)
     {
-        Browser* browser = new Browser();
+        QList<QPair<QString, int> > tmpProxys;
+        for (int j = 0; j < deta; j++)
+        {
+            if(!proxys.isEmpty()) {
+                tmpProxys << proxys.first();
+                proxys.pop_front();
+            }
+        }
+        //build clickInfo
+        QList<ClickInfo> clickInfos;
+        for (int j = 0; j < engineInfos.size(); j++)
+        {
+            clickInfos << ClickInfo(engineInfos.at(j), keyWords, tmpProxys, 1);
+        }
+        Browser* browser = new Browser(NULL, i);
         connect(browser, SIGNAL(updateClickInfo(UpdateInfo)), this, SLOT(onJobUpdate(UpdateInfo)));
-        connect(browser, SIGNAL(jobFinished()), this, SLOT(onJobFinished()));
+        connect(browser, SIGNAL(jobFinished(int)), this, SLOT(onJobFinishedById(int)));
         browser->show();
         browser->move(this->pos() + QPoint(200, 200));
         browsers.append(browser);

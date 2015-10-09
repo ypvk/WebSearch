@@ -10,8 +10,13 @@
 #include <QTabWidget>
 #include <QTimer>
 
-Browser::Browser(QWidget *parent) :
-        QMainWindow(parent)
+Browser::Browser(QWidget *parent, int id):
+    QMainWindow(parent)
+{
+    this->id = id;
+    init();
+}
+void Browser::init()
 {
     initConfig();
     shouldBack = false;
@@ -86,6 +91,85 @@ Browser::Browser(QWidget *parent) :
     timer->setSingleShot(true);
     connect(timer, SIGNAL(timeout()), this, SLOT(checkIfLoadFinished()));
     connect(view, SIGNAL(loadFinished(bool)), timer, SLOT(stop()));
+}
+
+Browser::Browser(QWidget *parent) :
+        QMainWindow(parent)
+{
+    init();
+//    initConfig();
+//    shouldBack = false;
+//    QFile file;
+//    file.setFileName(":/jquery.min.js");
+//    file.open(QIODevice::ReadOnly);
+//    jQuery = file.readAll();
+//    file.close();
+//    progress = 0;
+
+//    mutex = new QMutex;
+//    list = new QList<int>();
+
+//    tabwidget = new QTabWidget(this);
+
+//    QNetworkProxyFactory::setUseSystemConfiguration(true);
+
+//    cookieJar = new NetWorkCookieJar(this);
+
+//    view = new QWebView(this);
+//    tabwidget->addTab((QWidget*)view, tr("main view"));
+//    WebPage* webPage = new WebPage(view);
+//    view->setPage(webPage);
+//    view->page()->networkAccessManager()->setCookieJar(cookieJar);
+
+//    QObject::connect(webPage, SIGNAL(loadLink(QUrl)), this, SLOT(loadUrl(QUrl)));
+//    QObject::connect(webPage, SIGNAL(openLink(QUrl)), this, SLOT(openLink(QUrl)));
+
+//    connect(view, SIGNAL(loadFinished(bool)), SLOT(adjustLocation()));
+//    connect(view, SIGNAL(titleChanged(QString)), SLOT(adjustTitle()));
+//    connect(view, SIGNAL(loadProgress(int)), SLOT(setProgress(int)));
+//    connect(view, SIGNAL(loadFinished(bool)), SLOT(finishLoading(bool)));
+
+//    locationEdit = new QLineEdit();
+//    locationEdit->setSizePolicy(QSizePolicy::Expanding, locationEdit->sizePolicy().verticalPolicy());
+//    connect(locationEdit, SIGNAL(returnPressed()), SLOT(changeLocation()));
+//    QToolBar *toolBar = addToolBar(tr("Navigation"));
+//    toolBar->addAction(view->pageAction(QWebPage::Back));
+//    toolBar->addAction(view->pageAction(QWebPage::Forward));
+//    toolBar->addAction(view->pageAction(QWebPage::Reload));
+//    toolBar->addAction(view->pageAction(QWebPage::Stop));
+//    toolBar->addWidget(locationEdit);
+//    toolBar->addSeparator();
+
+//    keyWordEdit = new QLineEdit(this);
+//    keyWordEdit->setSizePolicy(QSizePolicy::Expanding, locationEdit->sizePolicy().verticalPolicy());
+//    keyWordEdit->setMaximumWidth(100);
+//    connect(keyWordEdit, SIGNAL(returnPressed()), this, SLOT(startSearch()));
+////    toolBarKeyWord->addWidget(keyWordEdit);
+//    toolBar->addWidget(keyWordEdit);
+
+//    QMenu *viewMenu = menuBar()->addMenu(tr("&View"));
+//    QAction* viewSourceAction = new QAction("Page Source", this);
+//    connect(viewSourceAction, SIGNAL(triggered()), SLOT(viewSource()));
+//    viewMenu->addAction(viewSourceAction);
+
+//    QMenu *effectMenu = menuBar()->addMenu(tr("&Effect"));
+//    effectMenu->addAction("Highlight all links", this, SLOT(highlightAllLinks()));
+
+//    QMenu *toolsMenu = menuBar()->addMenu(tr("&Tools"));
+
+//    setCentralWidget(tabwidget);
+//    setUnifiedTitleAndToolBarOnMac(true);
+
+//    connect(this, SIGNAL(searchFinished()), this, SLOT(onSearchFinished()));
+
+////    view->load(QUrl("http://www.baidu.com"));
+//    keyWordEdit->setEnabled(false);
+//    isStop = true;
+//    //set qtimer
+//    timer = new QTimer(this);
+//    timer->setSingleShot(true);
+//    connect(timer, SIGNAL(timeout()), this, SLOT(checkIfLoadFinished()));
+//    connect(view, SIGNAL(loadFinished(bool)), timer, SLOT(stop()));
 }
 void Browser::viewSource()
 {
@@ -314,7 +398,7 @@ void Browser::onSearchFinished()
     if (isStop || clickInfos.isEmpty())
     {
         isStop = true;
-        emit jobFinished();
+        emit jobFinished(id);
         return;
     }
     //not empty search again build search key word
@@ -331,8 +415,8 @@ void Browser::onSearchFinished()
     currentLinkName = "";
     currentLinkUrl = "";
     //set proxy
-    int index = proxys.count() - currentClickNum % (proxys.count() + 1);
-    if (index == proxys.count())
+//    int index = proxys.count() - currentClickNum % (proxys.count() + 1);
+    if (0 == proxys.count())
     {//use no proxy
         currentIp = CommonUtils::getMyIp();
         qDebug() << "use local ip->" << currentIp;
@@ -342,6 +426,7 @@ void Browser::onSearchFinished()
     }
     else
     {
+        int index = currentClickNum % proxys.count();
         QString hostname = proxys.at(index).first;
         int port = proxys.at(index).second;
         qDebug() << "use proxy->" << hostname << ":" << port;
@@ -358,7 +443,7 @@ void Browser::onSearchFinished()
     keyWordEdit->setEnabled(true);
     keyWordEdit->setText(currentKeyWord);
     //set timeout for the url is not load successfull
-    timer->start(6000);
+    timer->start(3000);
 }
 
 void Browser::checkAndEmitRealtimeInfo()
@@ -373,7 +458,7 @@ void Browser::checkAndEmitRealtimeInfo()
                               currentIp);
         currentClickNum++;
         int clickNum = clickInfos.first().getClickNum();
-        int totalClickNum = clickNum * clickInfos.first().getKeyWords().count();
+        int totalClickNum = clickNum * clickInfos.first().getKeyWords().count() * clickInfos.first().getProxys().count();
         qDebug() << "clickNum:" << currentClickNum;
         qDebug() << "totalCliclNum:" << totalClickNum;
         if (currentClickNum == totalClickNum)
