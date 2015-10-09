@@ -32,9 +32,9 @@ bool WebPage::acceptNavigationRequest(QWebFrame *frame, const QNetworkRequest &r
     }
 }
 
-bool WebPage::javaScriptAlert(QWebFrame *originatingFrame, const QString &msg)
+void WebPage::javaScriptAlert(QWebFrame *originatingFrame, const QString &msg)
 {
-    return false;
+    return;
 }
 bool WebPage::javaScriptConfirm(QWebFrame *originatingFrame, const QString &msg)
 {
