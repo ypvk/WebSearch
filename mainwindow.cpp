@@ -145,7 +145,8 @@ void MainWindow::onJobUpdate(const UpdateInfo &updateInfo)
     this->clickLinkLabelValue->setText(updateInfo.clickName);
     this->clickUrlLabelValue->setText(updateInfo.clickUrl);
     this->ipValue->setText(updateInfo.ip);
-    bool result = DBUtil::incWorkClick(updateInfo.keyWord, updateInfo.engineUrl);
+    bool result;
+    if(!updateInfo.clickName.isEmpty()) result = DBUtil::incWorkClick(updateInfo.keyWord, updateInfo.engineUrl);
     if (!result)
     {
         qDebug() << "error update";
@@ -191,6 +192,7 @@ void MainWindow::onJobFinished()
     finishedIds.clear();
     this->clickNum = this->clickNum - 1;
     if (this->clickNum != 0) {
+        this->sleep(300000);
         runSearchJob(threadNum);
     }
 }
@@ -353,4 +355,15 @@ void MainWindow::queryProxys(const QString& url)
         networkManager->setNetworkAccessible(QNetworkAccessManager::NotAccessible);
         qDebug() << "timeout";
     }
+}
+
+void MainWindow::sleep(long time)
+{
+        QEventLoop loop;
+        QTimer timer;
+        timer.setSingleShot(true);
+        QObject::connect(&timer, SIGNAL(timeout()), &loop, SLOT(quit()));
+        timer.start(time);
+        loop.exec();
+        timer.stop();
 }

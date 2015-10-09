@@ -17,6 +17,7 @@ protected:
     void javaScriptAlert(QWebFrame *originatingFrame, const QString &msg);
     bool javaScriptConfirm(QWebFrame *originatingFrame, const QString &msg);
     bool javaScriptPrompt(QWebFrame *originatingFrame, const QString &msg, const QString &defaultValue, QString *result);
+    QString userAgentForUrl ( const QUrl & url ) const;
 };
 
 #endif // WEBPAGE_H

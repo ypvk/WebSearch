@@ -1,6 +1,8 @@
 #include <QtGui/QApplication>
 #include <QtCore/QTextCodec>
 #include <QDebug>
+#include <QTimer>
+#include <QEventLoop>
 #include "mainwindow.h"
 #include "browser.h"
 #include "dbutil.h"
@@ -28,6 +30,16 @@ int main(int argc, char *argv[])
 #endif
     MainWindow w;
     w.show();
-
     return a.exec();
 }
+
+//void sleep1(long time)
+//{
+//    QEventLoop loop;
+//    QTimer timer;
+//    timer.setSingleShot(true);
+//    QObject::connect(&timer, SIGNAL(timeout()), &loop, SLOT(quit()));
+//    timer.start(time);
+//    loop.exec();
+//    timer.stop();
+//}

@@ -91,6 +91,8 @@ void Browser::init()
     timer->setSingleShot(true);
     connect(timer, SIGNAL(timeout()), this, SLOT(checkIfLoadFinished()));
     connect(view, SIGNAL(loadFinished(bool)), timer, SLOT(stop()));
+//    view->settings()->resetFontFamily(QWebSettings::StandardFont);
+//    view->settings()->setAttribute(QWebSettings::AutoLoadImages, false);
 }
 
 Browser::Browser(QWidget *parent) :

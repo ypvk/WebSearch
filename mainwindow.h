@@ -34,6 +34,7 @@ private:
     void startSearchJob(int clickNum, int threadNum);
     void runSearchJob(int threadNum);
     void queryProxys(const QString& url);
+    void sleep(long time);
 public slots:
     void onJobStateChange();
     void onJobUpdate(const UpdateInfo& updateInfo);
