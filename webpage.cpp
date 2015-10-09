@@ -31,3 +31,16 @@ bool WebPage::acceptNavigationRequest(QWebFrame *frame, const QNetworkRequest &r
         return QWebPage::acceptNavigationRequest(frame, request, type);
     }
 }
+
+bool WebPage::javaScriptAlert(QWebFrame *originatingFrame, const QString &msg)
+{
+    return false;
+}
+bool WebPage::javaScriptConfirm(QWebFrame *originatingFrame, const QString &msg)
+{
+    return false;
+}
+bool WebPage::javaScriptPrompt(QWebFrame *originatingFrame, const QString &msg, const QString &defaultValue, QString *result)
+{
+    return false;
+}

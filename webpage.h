@@ -14,6 +14,9 @@ signals:
     void openLink(const QUrl & url);
 protected:
     bool acceptNavigationRequest(QWebFrame *frame, const QNetworkRequest &request, NavigationType type);
+    bool javaScriptAlert(QWebFrame *originatingFrame, const QString &msg);
+    bool javaScriptConfirm(QWebFrame *originatingFrame, const QString &msg);
+    bool javaScriptPrompt(QWebFrame *originatingFrame, const QString &msg, const QString &defaultValue, QString *result);
 };
 
 #endif // WEBPAGE_H
