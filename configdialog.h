@@ -2,6 +2,7 @@
 #define CONFIGDIALOG_H
 
 #include <QDialog>
+#include <QSettings>
 
 class QTableView;
 class QTableModel;
@@ -11,12 +12,15 @@ class QTabWidget;
 class QPushButton;
 class QRadioButton;
 class QLineEdit;
+class QSettings;
 
 class ConfigDialog : public QDialog
 {
     Q_OBJECT
 public:
     explicit ConfigDialog(QWidget *parent = 0);
+    bool isUseProxyApi();
+    QString getProxyApiValue();
 private:
     void setupGui();
     void setupModel();
@@ -24,6 +28,10 @@ private:
     QString getFileName();
     void showMessage(const QString& msg);
     void showSuccessMessage(const QString& msg);
+    void loadSettings();
+    void saveSettings();
+protected:
+    void closeEvent(QCloseEvent *);
 protected slots:
     void onLoadForSearchButtonClicked();
     void onLoadForKeyWordButtonClicked();
@@ -72,6 +80,7 @@ private:
 
     QRadioButton* radioButton;
     QLineEdit* proxyApiValue;
+    QSettings settings;
 
 };
 

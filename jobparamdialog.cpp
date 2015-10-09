@@ -17,7 +17,16 @@ JobParamDialog::JobParamDialog(QWidget *parent) :
     layout1->addWidget(okButton);
     layout1->addWidget(cancelButton);
 
+    QHBoxLayout* layout2 = new QHBoxLayout;
+    threadNumLabel = new QLabel(tr("线程数"), this);
+    threadNumValue = new QSpinBox(this);
+    threadNumValue->setMinimum(1);
+    threadNumValue->setMaximum(10);
+    layout2->addWidget(threadNumLabel);
+    layout2->addWidget(threadNumValue);
+
     mainLayout->addLayout(layout);
+    mainLayout->addLayout(layout2);
     mainLayout->addLayout(layout1);
 
     this->setLayout(mainLayout);
@@ -31,4 +40,9 @@ int JobParamDialog::getClickNum()
     int num = clickNum->text().toInt();
     if (num >= 0) return num;
     else return 0;
+}
+int JobParamDialog::getThreadNum()
+{
+    int num = threadNumValue->value();
+    return num;
 }

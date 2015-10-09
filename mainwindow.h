@@ -16,6 +16,8 @@ class QToolBar;
 class QLineEdit;
 class Browser;
 class UpdateInfo;
+class ConfigDialog;
+class QNetworkAccessManager;
 
 class MainWindow : public QMainWindow
 {
@@ -29,7 +31,8 @@ private:
     void setupAction();
     void setupModel();
     void setupConnection();
-    void startSearchJob(int clickNum);
+    void startSearchJob(int clickNum, int threadNum);
+    void queryProxys(const QString& url);
 public slots:
     void onJobStateChange();
     void onJobUpdate(const UpdateInfo& updateInfo);
@@ -70,6 +73,10 @@ private:
     bool isRunning;
 
     Browser* browser;
+    ConfigDialog* configDialog;
+    QNetworkAccessManager* networkManager;
+    QList<QPair<QString, int> > proxys;
+    QList<Browser*> browsers;
 };
 
 #endif // MAINWINDOW_H

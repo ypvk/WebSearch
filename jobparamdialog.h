@@ -5,6 +5,7 @@
 class QLabel;
 class QLineEdit;
 class QPushButton;
+class QSpinBox;
 
 class JobParamDialog : public QDialog
 {
@@ -13,10 +14,13 @@ public:
     explicit JobParamDialog(QWidget *parent = 0);
 
     int getClickNum();
+    int getThreadNum();
 
 private:
     QLabel * clickNumLabel;
     QLineEdit* clickNum;
+    QLabel* threadNumLabel;
+    QSpinBox* threadNumValue;
     QPushButton* okButton;
     QPushButton* cancelButton;
 
