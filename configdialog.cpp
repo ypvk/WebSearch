@@ -135,7 +135,8 @@ void ConfigDialog::setupModel()
     keyWordModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
     keyWordModel->select();
     keyWordModel->setHeaderData(0, Qt::Horizontal, QObject::tr("ID"));
-    keyWordModel->setHeaderData(1, Qt::Horizontal, QObject::tr("Name"));
+    keyWordModel->setHeaderData(1, Qt::Horizontal, QObject::tr("MainKey"));
+    keyWordModel->setHeaderData(1, Qt::Horizontal, QObject::tr("AssistKey"));
     keyWordView->setModel(keyWordModel);
 
     proxyModel = new QSqlTableModel(this, db);
@@ -188,14 +189,17 @@ void ConfigDialog::onLoadForKeyWordButtonClicked()
         }
         QTextStream in(&file);
         in.setCodec(QTextCodec::codecForName("System"));
-        QVariantList words;
+        QVariantList mainKeys;
+        QVariantList assistKeys;
         bool result = true;
         while(!in.atEnd())
         {
             QString line = in.readLine().trimmed();
-            words << line;
-            if (words.count() == 100) {//insert for every 100 words
-                result = DBUtil::insertKeyWords(words);
+            QStringList words = line.split(QRegExp("\\s+|\\t+"));
+            mainKeys << words.at(0);
+            assistKeys << words.at(1);
+            if (mainKeys.count() == 100) {//insert for every 100 words
+                result = DBUtil::insertKeyWords(mainKeys, assistKeys);
                 if (!result) {
                     showMessage("insert key word error");
                     file.close();
@@ -205,8 +209,8 @@ void ConfigDialog::onLoadForKeyWordButtonClicked()
             }
         }
         //insert outside
-        if (!words.isEmpty()) {
-            result = DBUtil::insertKeyWords(words);
+        if (!mainKeys.isEmpty()) {
+            result = DBUtil::insertKeyWords(mainKeys, assistKeys);
             if (!result) {
                 showMessage("insert key word error");
                 file.close();
