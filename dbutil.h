@@ -22,16 +22,16 @@ public:
     static void clearTables();
     static void initValues();
     static void printInfo(const QSqlQuery& query, bool result);
-    static bool insertKeyWords(const QVariantList& words);
+    static bool insertKeyWords(const QVariantList &mainKeys, const QVariantList &assistKeys);
     static bool deleteKeyWords(const QVariantList& ids);
     static bool insertEngines(const QVariantList& engineNames, const QVariantList& engineUrls);
     static bool deleteEngines(const QVariantList& ids);
     static bool insertProxys(const QVariantList& ips, const QVariantList& ports);
     static bool deleteProxys(const QVariantList& ids);
-    static QList<QString> getKeyWords();
+    static QList<QPair<QString,QString> > getKeyWords();
     static QList<EngineInfo> getEngineInfos();
     static QList<QPair<QString, int> > getProxys();
-    static bool incWorkClick(const QString& keyWord, const QString& url);
+    static bool incWorkClick(const QString &mainKey, const QString& assistKey, const QString &url);
     static void test();
 private:
     DBUtil();
