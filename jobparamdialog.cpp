@@ -4,7 +4,7 @@
 JobParamDialog::JobParamDialog(QWidget *parent) :
     QDialog(parent)
 {
-    clickNumLabel = new QLabel(tr("点击次数"), this);
+    clickNumLabel = new QLabel(tr("循环次数"), this);
     clickNum = new QLineEdit(this);
     clickNum->setText("1");
     QVBoxLayout* mainLayout = new QVBoxLayout;

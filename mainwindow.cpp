@@ -285,6 +285,7 @@ void MainWindow::runSearchJob(int threadNum)
         return;
     }
     int deta = proxys.count() / threadNum;
+    if (deta == 0) deta = 1;
 
     for(int i = 0; i < threadNum; i++)
     {
