@@ -1,6 +1,5 @@
 #include "commonutils.h"
 #include <QtGui>
-#include <ctime>
 #include <QtNetwork>
 
 CommonUtils::CommonUtils()
@@ -9,12 +8,13 @@ CommonUtils::CommonUtils()
 
 void CommonUtils::sleep(long time)
 {
-    QTime t;
-    t.start();
-    while(t.elapsed()<2000) {
-        QCoreApplication::processEvents();
-//        usleep(10000);
-    }
+    QEventLoop loop;
+    QTimer timer;
+    timer.setSingleShot(true);
+    QObject::connect(&timer, SIGNAL(timeout()), &loop, SLOT(quit()));
+    timer.start(time);
+    loop.exec();
+    timer.stop();
 }
 
 int CommonUtils::rand(long n)

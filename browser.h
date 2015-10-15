@@ -57,6 +57,7 @@ private:
      void baseHrefClick(const QString& lickItemSelector);
      void checkAndEmitRealtimeInfo();
      void initConfig();
+     void queryOneWord();
 
  private:
      QString jQuery;
@@ -77,7 +78,7 @@ private:
      int currentClickNum;
      QString currentEngine;
      QString currentUrl;
-     QString currentKeyWord;
+     QPair<QString, QString> currentKeyWord;
      QString currentLinkName;
      QString currentLinkUrl;
      QString currentIp;
