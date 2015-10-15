@@ -141,12 +141,14 @@ void MainWindow::onJobUpdate(const UpdateInfo &updateInfo)
 {
     this->searchEngineLabelValue->setText(updateInfo.engineName);
     this->searchUrlLabelValue->setText(updateInfo.engineUrl);
-    this->keyWordLabelValue->setText(updateInfo.keyWord);
+    this->keyWordLabelValue->setText(updateInfo.keyWord.first + "&" + updateInfo.keyWord.second);
     this->clickLinkLabelValue->setText(updateInfo.clickName);
     this->clickUrlLabelValue->setText(updateInfo.clickUrl);
     this->ipValue->setText(updateInfo.ip);
     bool result;
-    if(!updateInfo.clickName.isEmpty()) result = DBUtil::incWorkClick(updateInfo.keyWord, updateInfo.engineUrl);
+    if(!updateInfo.clickName.isEmpty()) result = DBUtil::incWorkClick(updateInfo.keyWord.first,
+                                                                      updateInfo.keyWord.second,
+                                                                      updateInfo.engineUrl);
     if (!result)
     {
         qDebug() << "error update";
