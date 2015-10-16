@@ -230,21 +230,24 @@ void Browser::startSearch()
    }
    QString mainKeyWord = currentKeyWord.first;
    keyWordEdit->setText(mainKeyWord);
-   startFillKeyWord();
+   queryOneWord();
+   QString assistWord = currentKeyWord.second;
+   keyWordEdit->setText(assistWord);
+   queryOneWord();
+   startHrefClick();
 }
 void Browser::queryOneWord()
 {
     QTimer mTimer;
     QEventLoop loop;
     mTimer.setSingleShot(true);
-    connect(&timer, SIGNAL(timeout()), &loop, SLOT(quit()));
+    connect(&mTimer, SIGNAL(timeout()), &loop, SLOT(quit()));
     startFillKeyWord();
     mTimer.start(1000);
     loop.exec();
     startSubmit();
     mTimer.start(4000);
     startHrefClick();
-
 }
 
 void Browser::startFillKeyWord()
@@ -253,7 +256,7 @@ void Browser::startFillKeyWord()
     QString keyWord = keyWordEdit->text();
     QWebElement element = view->page()->mainFrame()->findFirstElement(textSelecter);
     element.setAttribute("value", keyWord);
-    QTimer::singleShot(1000, this, SLOT(startSubmit()));
+    //QTimer::singleShot(1000, this, SLOT(startSubmit()));
 }
 
 void Browser::startSubmit()
@@ -263,7 +266,7 @@ void Browser::startSubmit()
     qDebug() << element.geometry().center();
     QPoint elemPos = element.geometry().center();
     buttonClick(elemPos);
-    QTimer::singleShot(4000, this, SLOT(startHrefClick()));
+   // QTimer::singleShot(4000, this, SLOT(startHrefClick()));
 }
 
 void Browser::startHrefClick()

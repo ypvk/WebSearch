@@ -148,7 +148,7 @@ QList<QPair<QString,QString> > DBUtil::getKeyWords()
     QSqlQuery query = getQuery(db);
     query.exec(QUERY_KEY_WORDS_SQL);
     while(query.next()) {
-        keyWords << QPair<QString, QString>(query.value(0).toString(), query.value(1).toString);
+        keyWords << QPair<QString, QString>(query.value(0).toString(), query.value(1).toString());
     }
     return keyWords;
 }

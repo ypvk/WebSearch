@@ -15,7 +15,7 @@ ClickInfo::ClickInfo(const ClickInfo &other)
 }
 
 ClickInfo::ClickInfo(const EngineInfo &engineInfo,
-                     QList<QPair<QString, QString> >& keyWords,
+                     const QList<QPair<QString, QString> >& keyWords,
                      const QList<QPair<QString, int> >& proxys,
                      int clickNum)
 {
