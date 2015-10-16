@@ -243,6 +243,7 @@ void Browser::queryOneWord()
     loop.exec();
     startSubmit();
     mTimer.start(4000);
+    startHrefClick();
 
 }
 
