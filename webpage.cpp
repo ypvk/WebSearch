@@ -1,4 +1,5 @@
 #include "webpage.h"
+#include "browser.h"
 #include <QNetworkRequest>
 #include <QDebug>
 
@@ -6,6 +7,12 @@ WebPage::WebPage(QWidget *parent) :
     QWebPage(parent)
 {
 }
+WebPage::WebPage(Browser *parent):
+        QWebPage(parent)
+{
+    this->browser = parent;
+}
+
 bool WebPage::acceptNavigationRequest(QWebFrame *frame, const QNetworkRequest &request, NavigationType type){
     if(type==0){//如果是用户点击
         qDebug() << "user click==========";
@@ -17,19 +24,32 @@ bool WebPage::acceptNavigationRequest(QWebFrame *frame, const QNetworkRequest &r
         }
 
     }
+    else if (type == QWebPage::NavigationTypeFormSubmitted) {
+        qDebug() << "form submit==================";
+        QUrl newUrl(request.url());
+        if (browser->getQueryState()) {
+            newUrl.addQueryItem("rq", browser->getCurrentKeyWord().second);
+        } else {
+            newUrl.addQueryItem("rq", browser->getCurrentKeyWord().first);
+        }
+        qDebug() << newUrl.toString();
+        emit loadLink(newUrl);
+    }
     else {
         qDebug() << "other===================" << type;
         qDebug() << request.url().toString();
+        if (request.url().toString().contains("search.yahoo.com"))
+        {
+            qDebug() << "exit url " << request.url().toString();
+            return false;
+        }
+        else
+        {
+            return QWebPage::acceptNavigationRequest(frame, request, type);
+        }
     }
-    if (request.url().toString().contains("search.yahoo.com"))
-    {
-        qDebug() << "exit url " << request.url().toString();
-        return false;
-    }
-    else
-    {
-        return QWebPage::acceptNavigationRequest(frame, request, type);
-    }
+    return false;
+
 }
 
 void WebPage::javaScriptAlert(QWebFrame *originatingFrame, const QString &msg)

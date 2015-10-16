@@ -2,13 +2,14 @@
 #define WEBPAGE_H
 
 #include <QtWebKit/QWebPage>
+class Browser;
 
 class WebPage : public QWebPage
 {
     Q_OBJECT
 public:
     explicit WebPage(QWidget *parent = 0);
-
+    explicit WebPage(Browser* parent = 0);
 signals:
     void loadLink(const QUrl & url);
     void openLink(const QUrl & url);
@@ -18,6 +19,8 @@ protected:
     bool javaScriptConfirm(QWebFrame *originatingFrame, const QString &msg);
     bool javaScriptPrompt(QWebFrame *originatingFrame, const QString &msg, const QString &defaultValue, QString *result);
     QString userAgentForUrl ( const QUrl & url ) const;
+private:
+    Browser* browser;
 };
 
 #endif // WEBPAGE_H

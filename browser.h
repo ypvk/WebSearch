@@ -22,6 +22,8 @@ public:
     explicit Browser(QWidget *parent = 0);
     explicit Browser(QWidget* parent = 0, int id = 0);
     void search(const QList<ClickInfo>& clickInfos);
+    QPair<QString, QString>& getCurrentKeyWord();
+    bool getQueryState();
     ~Browser();
 signals:
      void searchFinished();
@@ -93,6 +95,7 @@ private:
      QString searchEngineKey;
 
      QTimer* timer;
+     QTimer* hrefTimer;
 
      //id
      int id;
