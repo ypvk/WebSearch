@@ -50,6 +50,8 @@ protected slots:
      void startHrefClick();
      void onSearchFinished();
      void checkIfLoadFinished();
+     void queryMainWord();
+     void queryAssitWord();
 private:
      void init();
      void buttonClick(const QPoint& pos);
@@ -57,7 +59,7 @@ private:
      void baseHrefClick(const QString& lickItemSelector);
      void checkAndEmitRealtimeInfo();
      void initConfig();
-     void queryOneWord();
+
 
  private:
      QString jQuery;
@@ -85,6 +87,7 @@ private:
 
      bool isStop;
      bool searchFlag;
+     bool isQueryMain;
      //engine config map
      QMap<QString, EngineConfig> engineConfigMap;
      QString searchEngineKey;

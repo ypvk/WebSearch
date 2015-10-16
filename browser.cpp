@@ -228,26 +228,23 @@ void Browser::startSearch()
        qDebug() << "not set in config.ini set " << url <<" into file";
        searchEngineKey = "default";
    }
-   QString mainKeyWord = currentKeyWord.first;
-   keyWordEdit->setText(mainKeyWord);
-   queryOneWord();
-   QString assistWord = currentKeyWord.second;
-   keyWordEdit->setText(assistWord);
-   queryOneWord();
-   startHrefClick();
+    queryMainWord();
 }
-void Browser::queryOneWord()
+void Browser::queryMainWord()
 {
-    QTimer mTimer;
-    QEventLoop loop;
-    mTimer.setSingleShot(true);
-    connect(&mTimer, SIGNAL(timeout()), &loop, SLOT(quit()));
+    isQueryMain = true;
+    QString mainKeyWord = currentKeyWord.first;
+    keyWordEdit->setText(mainKeyWord);
     startFillKeyWord();
-    mTimer.start(1000);
-    loop.exec();
-    startSubmit();
-    mTimer.start(4000);
-    loop.exec();
+    QTimer::singleShot(1000, this, SLOT(startSubmit()));
+}
+void Browser::queryAssitWord()
+{
+    isQueryMain = false;
+    QString assistWord = currentKeyWord.second;
+    keyWordEdit->setText(assistWord);
+    startFillKeyWord();
+    QTimer::singleShot(1000, this, SLOT(startSubmit()));
 }
 
 void Browser::startFillKeyWord()
@@ -256,7 +253,6 @@ void Browser::startFillKeyWord()
     QString keyWord = keyWordEdit->text();
     QWebElement element = view->page()->mainFrame()->findFirstElement(textSelecter);
     element.setAttribute("value", keyWord);
-    //QTimer::singleShot(1000, this, SLOT(startSubmit()));
 }
 
 void Browser::startSubmit()
@@ -266,7 +262,8 @@ void Browser::startSubmit()
     qDebug() << element.geometry().center();
     QPoint elemPos = element.geometry().center();
     buttonClick(elemPos);
-   // QTimer::singleShot(4000, this, SLOT(startHrefClick()));
+    if (isQueryMain) QTimer::singleShot(4000, this, SLOT(queryAssitWord()));
+    else QTimer::singleShot(4000, this, SLOT(startHrefClick()));
 }
 
 void Browser::startHrefClick()
