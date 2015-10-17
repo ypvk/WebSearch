@@ -42,6 +42,8 @@ public slots:
     void onJobFinished();
     void onAboutActiontrigger();
     void onJobFinishedById(int id);
+    void onDeleteSelectedButtonClicked();
+    void onDeleteAllButtonClicked();
 private:
     Ui::MainWindow *ui;
 
@@ -84,6 +86,9 @@ private:
     int clickNum;
     int threadNum;
     QList<int> finishedIds;
+
+    QPushButton* deleteSelectedButton;
+    QPushButton* deleteAllButton;
 };
 
 #endif // MAINWINDOW_H

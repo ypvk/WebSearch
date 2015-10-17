@@ -24,6 +24,7 @@ const QString DBUtil::INSERT_PROXY_SQL = "insert into proxy(ip, port) values(?,?
 const QString DBUtil::DELETE_ENGINE_SQL = "delete from search_engine where id=?";
 const QString DBUtil::DELETE_KEY_WORDS_SQL = "delete from key_word where id=?";
 const QString DBUtil::DELETE_PROXY_SQL = "delete from proxy where id=?";
+const QString DBUtil::DELETE_CLICK_SQL = "delete from click where id=?";
 const QString DBUtil::QUERY_KEY_WORDS_SQL = "select main_key, assist_key from key_word";
 const QString DBUtil::QUERY_SEARCH_ENGINE_SQL = "select name, url from search_engine";
 const QString DBUtil::QUERY_PROXY_SQL = "select ip, port from proxy";
@@ -182,12 +183,14 @@ bool DBUtil::insertKeyWords(const QVariantList &mainKeys, const QVariantList &as
     qDebug() << "start insert words size:" << mainKeys.size();
     QSqlDatabase db = getDB();
     QSqlQuery query = getQuery(db);
+    db.transaction();
     bool result = query.prepare(INSERT_KEY_WORDS_SQL);
     printInfo(query, result);
     if (!result) return result;
     query.addBindValue(mainKeys);
     query.addBindValue(assistKeys);
     result = query.execBatch();
+    db.commit();
     printInfo(query, result);
     return result;
 
@@ -197,12 +200,14 @@ bool DBUtil::insertEngines(const QVariantList& engineNames, const QVariantList& 
     qDebug() << "start insert engines size:" + engineNames.size();
     QSqlDatabase db = getDB();
     QSqlQuery query = getQuery(db);
+    db.transaction();
     bool result = query.prepare(INSERT_ENGINE_SQL);
     printInfo(query, result);
     if (!result) return result;
     query.addBindValue(engineNames);
     query.addBindValue(engineUrls);
     result = query.execBatch();
+    db.commit();
     printInfo(query, result);
     return result;
 }
@@ -211,12 +216,14 @@ bool DBUtil::insertProxys(const QVariantList &ips, const QVariantList &ports)
     qDebug() << "start insert proxy size:" + ips.size();
     QSqlDatabase db = getDB();
     QSqlQuery query = getQuery(db);
+    db.transaction();
     bool result = query.prepare(INSERT_PROXY_SQL);
     printInfo(query, result);
     if (!result) return result;
     query.addBindValue(ips);
     query.addBindValue(ports);
     result = query.execBatch();
+    db.commit();
     printInfo(query, result);
     return result;
 
@@ -226,12 +233,14 @@ bool DBUtil::deleteByIds(const QString &sql, const QVariantList &ids)
 {
     qDebug() << "delete count: " << ids.count();
     QSqlDatabase db = getDB();
+    db.transaction();
     QSqlQuery query = getQuery(db);
     bool result = query.prepare(sql);
     printInfo(query, result);
     if (!result) return result;
     query.addBindValue(ids);
     result = query.execBatch();
+    db.commit();
     printInfo(query, result);
     return result;
 }
@@ -248,6 +257,10 @@ bool DBUtil::deleteKeyWords(const QVariantList &ids)
 bool DBUtil::deleteProxys(const QVariantList &ids)
 {
     return deleteByIds(DELETE_PROXY_SQL, ids);
+}
+bool DBUtil::deleteClicks(const QVariantList &ids)
+{
+    return deleteByIds(DELETE_CLICK_SQL, ids);
 }
 
 bool DBUtil::incWorkClick(const QString &mainKey, const QString& assistKey, const QString &url)
@@ -287,4 +300,16 @@ bool DBUtil::incWorkClick(const QString &mainKey, const QString& assistKey, cons
        printInfo(query, result);
        return result;
     }
+}
+
+bool DBUtil::clearTable(const QString &tableName)
+{
+    QString sql = QString("delete from %1").arg(tableName);
+    QSqlDatabase db = getDB();
+    QSqlQuery query = getQuery(db);
+    bool result = query.exec(sql);
+    printInfo(query, result);
+    result = query.exec("VACUUM");
+    printInfo(query, result);
+    return result;
 }

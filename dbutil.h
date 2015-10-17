@@ -28,11 +28,13 @@ public:
     static bool deleteEngines(const QVariantList& ids);
     static bool insertProxys(const QVariantList& ips, const QVariantList& ports);
     static bool deleteProxys(const QVariantList& ids);
+    static bool deleteClicks(const QVariantList& ids);
     static QList<QPair<QString,QString> > getKeyWords();
     static QList<EngineInfo> getEngineInfos();
     static QList<QPair<QString, int> > getProxys();
     static bool incWorkClick(const QString &mainKey, const QString& assistKey, const QString &url);
     static void test();
+    static bool clearTable(const QString& tableName);
 private:
     DBUtil();
     static bool deleteByIds(const QString& sql, const QVariantList& ids);
@@ -63,6 +65,7 @@ public:
     static const QString EXISTS_CLICK_SQL;
     static const QString INSERT_CLICK_SQL;
     static const QString UPDATE_CLICK_SQL;
+    static const QString DELETE_CLICK_SQL;
 };
 
 #endif // DBUTIL_H

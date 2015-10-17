@@ -58,6 +58,13 @@ void MainWindow::setupGui()
     layout1->addWidget(clickView);
     infoGroupBox->setLayout(layout1);
 
+    deleteSelectedButton = new QPushButton(tr("删除选中"), this);
+    deleteAllButton = new QPushButton(tr("清空"), this);
+    QHBoxLayout* buttonLayout = new QHBoxLayout;
+    buttonLayout->addWidget(deleteSelectedButton);
+    buttonLayout->addWidget(deleteAllButton);
+    layout1->addLayout(buttonLayout);
+
 
     QGridLayout* layout2 = new QGridLayout;
     searchEngineLabel = new QLabel(tr("搜索引擎"), this);
@@ -125,6 +132,8 @@ void MainWindow::setupConnection()
 //    connect(browser, SIGNAL(jobFinished()), this, SLOT(onJobFinished()));
     connect(configAction, SIGNAL(triggered()), this, SLOT(onConfigActionTrigger()));
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(onAboutActiontrigger()));
+    connect(deleteAllButton, SIGNAL(clicked()), this, SLOT(onDeleteAllButtonClicked()));
+    connect(deleteSelectedButton, SIGNAL(clicked()), this, SLOT(onDeleteSelectedButtonClicked()));
 }
 
 void MainWindow::onConfigActionTrigger()
@@ -224,8 +233,9 @@ void MainWindow::setupModel()
     clickModel->select();
     clickModel->setHeaderData(0, Qt::Horizontal, QObject::tr("ID"));
     clickModel->setHeaderData(1, Qt::Horizontal, QObject::tr("ENGINE URL"));
-    clickModel->setHeaderData(2, Qt::Horizontal, QObject::tr("KEY WORD"));
-    clickModel->setHeaderData(3, Qt::Horizontal, QObject::tr("CLICK TIMES"));
+    clickModel->setHeaderData(2, Qt::Horizontal, QObject::tr("MAIN WORD"));
+    clickModel->setHeaderData(3, Qt::Horizontal, QObject::tr("ASSIST WORD"));
+    clickModel->setHeaderData(4, Qt::Horizontal, QObject::tr("CLICK TIMES"));
     clickView->setModel(clickModel);
 
 }
@@ -338,4 +348,31 @@ void MainWindow::sleep(long time)
         timer.start(time);
         loop.exec();
         timer.stop();
+}
+void MainWindow::onDeleteSelectedButtonClicked()
+{
+    QItemSelectionModel *selections = this->clickView->selectionModel();
+    QModelIndexList indexes = selections->selectedIndexes();
+    if (indexes.count() == 0) {
+        return;
+    }
+    QVariantList ids;
+    foreach(QModelIndex index, indexes)
+    {
+        if(index.column() == 0) {
+            ids << index.data();
+        }
+    }
+    bool result = DBUtil::deleteClicks(ids);
+    if (! result) {
+        QMessageBox::information(this, "error", "error delete engine");
+    }
+    else
+        clickModel->select();
+}
+
+void MainWindow::onDeleteAllButtonClicked()
+{
+    DBUtil::clearTable(DBUtil::CLICK_TABLE_NAME);
+    clickModel->select();
 }

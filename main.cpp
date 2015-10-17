@@ -14,44 +14,9 @@
 #include <QTextStream>
 
 //#define FIRST_INIT
-void customMessageHandler(QtMsgType type, const char *msg)
-{
-    static QMutex mutex;
-    mutex.lock();
 
-    QString text;
-    switch(type)
-    {
-    case QtDebugMsg:
-        text = QString("Debug:");
-        break;
+void customMessageHandler(QtMsgType type, const char *msg);
 
-    case QtWarningMsg:
-        text = QString("Warning:");
-        break;
-
-    case QtCriticalMsg:
-        text = QString("Critical:");
-        break;
-
-    case QtFatalMsg:
-        text = QString("Fatal:");
-    }
-
-    QString current_date_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
-    QString current_date = QString("(%1)").arg(current_date_time);
-    QString message = QString("%1 %2 %3").arg(text).arg(current_date).arg(msg);
-
-    QFile file("log.txt");
-    file.open(QIODevice::WriteOnly | QIODevice::Append);
-    QTextStream text_stream(&file);
-    text_stream.setCodec(QTextCodec::codecForName("System"));
-    text_stream << message << "\r\n";
-    file.flush();
-    file.close();
-
-    mutex.unlock();
-}
 int main(int argc, char *argv[])
 {
     //for qsettings
@@ -81,13 +46,48 @@ int main(int argc, char *argv[])
     return a.exec();
 }
 
-//void sleep1(long time)
-//{
-//    QEventLoop loop;
-//    QTimer timer;
-//    timer.setSingleShot(true);
-//    QObject::connect(&timer, SIGNAL(timeout()), &loop, SLOT(quit()));
-//    timer.start(time);
-//    loop.exec();
-//    timer.stop();
-//}
+void customMessageHandler(QtMsgType type, const char *msg)
+{
+    static QMutex mutex;
+    mutex.lock();
+
+    QString text;
+    switch(type)
+    {
+    case QtDebugMsg:
+        text = QString("Debug:");
+        break;
+
+    case QtWarningMsg:
+        text = QString("Warning:");
+        break;
+
+    case QtCriticalMsg:
+        text = QString("Critical:");
+        break;
+
+    case QtFatalMsg:
+        text = QString("Fatal:");
+    }
+
+    QString current_date_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+    QString current_date = QString("(%1)").arg(current_date_time);
+    QString message = QString("%1 %2 %3").arg(text).arg(current_date).arg(msg);
+
+    QFile file("log.txt");
+    if (file.size() > 104857600)//size large than 100M split
+    {
+        QString filedate = QDateTime::currentDateTime().toString("yyyy-MM-dd--hh-mm-ss");
+        file.rename(QString("log_%1.txt").arg(filedate));
+        file.setFileName("log.txt");
+    }
+    file.open(QIODevice::WriteOnly | QIODevice::Append);
+    QTextStream text_stream(&file);
+    text_stream.setCodec(QTextCodec::codecForName("System"));
+    text_stream << message << "\r\n";
+    file.flush();
+    file.close();
+
+    mutex.unlock();
+}
+

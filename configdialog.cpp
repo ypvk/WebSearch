@@ -44,6 +44,9 @@ void ConfigDialog::setupGui()
     submitChangeForSearchButton = new QPushButton(tr("提交更改"), this);
     submitChangeForKeyWordButton = new QPushButton(tr("提交更改"), this);
     submitChangeForProxyButton = new QPushButton(tr("提交更改"), this);
+    clearSearchButton = new QPushButton(tr("清空"), this);
+    clearKeyButton = new QPushButton(tr("清空"), this);
+    clearProxyButton = new QPushButton(tr("清空"), this);
 
 
     searchEngineGroupBox = new QGroupBox(tr("搜索引擎"), this);
@@ -60,6 +63,7 @@ void ConfigDialog::setupGui()
     QHBoxLayout* seOperationBoxLayout = new QHBoxLayout;
     seOperationBoxLayout->addWidget(loadForSearchButton);
     seOperationBoxLayout->addWidget(removeSelectedForSearchButton);
+    seOperationBoxLayout->addWidget(clearSearchButton);
     seOperationBoxLayout->addWidget(submitChangeForSearchButton);
     searchEngineOperationBox->setLayout(seOperationBoxLayout);
 
@@ -79,6 +83,7 @@ void ConfigDialog::setupGui()
     QHBoxLayout* kwOperationBoxLayout = new QHBoxLayout;
     kwOperationBoxLayout->addWidget(loadForKeyWordButton);
     kwOperationBoxLayout->addWidget(removeSelectedForKeyWordButton);
+    kwOperationBoxLayout->addWidget(clearKeyButton);
     kwOperationBoxLayout->addWidget(submitChangeForKeyWordButton);
     keyWordOperationBox->setLayout(kwOperationBoxLayout);
     //proxy
@@ -104,6 +109,7 @@ void ConfigDialog::setupGui()
     QHBoxLayout* pxOperationBoxLayout = new QHBoxLayout;
     pxOperationBoxLayout->addWidget(loadForProxyButton);
     pxOperationBoxLayout->addWidget(removeSelectedForProxyButton);
+    pxOperationBoxLayout->addWidget(clearProxyButton);
     pxOperationBoxLayout->addWidget(submitChangeForProxyButton);
     proxyOperationBox->setLayout(pxOperationBoxLayout);
 
@@ -161,6 +167,9 @@ void ConfigDialog::setupConnection()
     connect(submitChangeForKeyWordButton, SIGNAL(clicked()), this, SLOT(onSubmitChangeForKeyWordButtonClicked()));
     connect(submitChangeForProxyButton, SIGNAL(clicked()), this, SLOT(onSubmitChangeForProxyButtonClicked()));
     connect(radioButton, SIGNAL(toggled(bool)), this, SLOT(onRaidoButtonToogled(bool)));
+    connect(clearProxyButton, SIGNAL(clicked()), this, SLOT(onClearProxyButton()));
+    connect(clearSearchButton, SIGNAL(clicked()), this, SLOT(onClearSearchButtonClicked()));
+    connect(clearKeyButton, SIGNAL(clicked()), this, SLOT(onClearKeyButtonClicked()));
 }
 
 void ConfigDialog::onRaidoButtonToogled(bool state)
@@ -205,7 +214,8 @@ void ConfigDialog::onLoadForKeyWordButtonClicked()
                     file.close();
                     return;
                 }
-                words.clear();
+                mainKeys.clear();
+                assistKeys.clear();
             }
         }
         //insert outside
@@ -432,6 +442,40 @@ void ConfigDialog::onSubmitChangeForSearchButtonClicked()
     else
     {
         showSuccessMessage("Sucess Submit");
+    }
+}
+void ConfigDialog::onClearKeyButtonClicked()
+{
+    bool result = DBUtil::clearTable(DBUtil::KEY_WORD_NAME);
+    if (! result)
+    {
+        showMessage("ERROR clear data");
+    }
+    else {
+        keyWordModel->select();
+    }
+}
+void ConfigDialog::onClearProxyButton()
+{
+    bool result = DBUtil::clearTable(DBUtil::PROXY_NAME);
+    if (! result)
+    {
+        showMessage("ERROR clear data");
+    }
+    else {
+        proxyModel->select();
+    }
+}
+void ConfigDialog::onClearSearchButtonClicked()
+{
+    bool result = DBUtil::clearTable(DBUtil::SEARCH_ENGINE_NAME);
+    if (! result)
+    {
+        showMessage("ERROR clear data");
+    }
+    else
+    {
+        searchEngineModel->select();
     }
 }
 

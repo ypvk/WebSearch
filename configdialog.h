@@ -43,6 +43,9 @@ protected slots:
     void onSubmitChangeForKeyWordButtonClicked();
     void onSubmitChangeForProxyButtonClicked();
     void onRaidoButtonToogled(bool state);
+    void onClearSearchButtonClicked();
+    void onClearKeyButtonClicked();
+    void onClearProxyButton();
 
 private:
 
@@ -77,6 +80,9 @@ private:
     QPushButton* submitChangeForSearchButton;
     QPushButton* submitChangeForKeyWordButton;
     QPushButton* submitChangeForProxyButton;
+    QPushButton* clearSearchButton;
+    QPushButton* clearKeyButton;
+    QPushButton* clearProxyButton;
 
     QRadioButton* radioButton;
     QLineEdit* proxyApiValue;
