@@ -12,6 +12,7 @@ public:
     static int rand(long n);
     static QString getMyIp();
     static QMap<QString, EngineConfig> getEngineConfigs();
+    static bool isClearCookie();
 private:
     CommonUtils();
 };

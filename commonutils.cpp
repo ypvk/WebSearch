@@ -52,6 +52,7 @@ QMap<QString, EngineConfig> CommonUtils::getEngineConfigs()
     QSettings *configIniRead = new QSettings("config.ini", QSettings::IniFormat);
     QStringList engineGroups = configIniRead->childGroups();
     for(int i = 0; i < engineGroups.size(); i++) {
+        if (!engineGroups.at(i).startsWith("engine")) continue;
         QString hostNameKey = engineGroups.at(i) + "/hostname";
         QString inputTextKey = engineGroups.at(i) + "/input_text";
         QString inputSubmitKey = engineGroups.at(i) + "/input_submit";
@@ -64,4 +65,15 @@ QMap<QString, EngineConfig> CommonUtils::getEngineConfigs()
     }
     delete configIniRead;
     return engineConfigMap;
+}
+bool CommonUtils::isClearCookie()
+{
+    QSettings *configIniRead = new QSettings("config.ini", QSettings::IniFormat);
+    QString isClear = configIniRead->value("cookie/is_clear").toString().toLower();
+    if (isClear == "true")
+    {
+        return true;
+    }
+    else return false;
+
 }

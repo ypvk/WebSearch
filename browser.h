@@ -99,6 +99,7 @@ private:
 
      //id
      int id;
+     bool isClearCookie;
 };
 
 #endif // BROWSER_H

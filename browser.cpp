@@ -337,7 +337,7 @@ void Browser::onSearchFinished()
 {
     timer->stop();
     checkAndEmitRealtimeInfo();
-    clearCookie();
+    if (this->isClearCookie)  clearCookie();
     if (isStop || clickInfos.isEmpty())
     {
         isStop = true;
@@ -439,6 +439,8 @@ void Browser::initConfig()
 {
     this->engineConfigMap = CommonUtils::getEngineConfigs();
     qDebug() << engineConfigMap.keys();
+    this->isClearCookie = CommonUtils::isClearCookie();
+    qDebug() << "is clear cookie:" << this->isClearCookie;
 //    qDebug() << engineConfigMap["default"].hrefLink;
 }
 
