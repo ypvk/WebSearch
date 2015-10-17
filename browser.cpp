@@ -38,7 +38,7 @@ void Browser::init()
 
     view = new QWebView(this);
     tabwidget->addTab((QWidget*)view, tr("main view"));
-    WebPage* webPage = new WebPage(view);
+    WebPage* webPage = new WebPage(this);
     view->setPage(webPage);
     view->page()->networkAccessManager()->setCookieJar(cookieJar);
 
@@ -91,8 +91,11 @@ void Browser::init()
     timer->setSingleShot(true);
     connect(timer, SIGNAL(timeout()), this, SLOT(checkIfLoadFinished()));
     connect(view, SIGNAL(loadFinished(bool)), timer, SLOT(stop()));
-//    view->settings()->resetFontFamily(QWebSettings::StandardFont);
-//    view->settings()->setAttribute(QWebSettings::AutoLoadImages, false);
+    //set href timer
+    hrefTimer = new QTimer(this);
+    hrefTimer->setSingleShot(true);
+    connect(hrefTimer, SIGNAL(timeout()), this, SIGNAL(searchFinished()));
+    connect(view, SIGNAL(loadFinished(bool)), hrefTimer, SLOT(stop()));
 }
 
 Browser::Browser(QWidget *parent) :
@@ -180,8 +183,17 @@ void Browser::openLink(const QUrl &url)
 
 void Browser::loadUrl(const QUrl &url)
 {
+    hrefTimer->stop();//stop timer
+//    QUrl urlToLoad(url);
     if (!url.toString().contains("search.yahoo.com"))
     {
+//        //add rq param
+//        if (isQueryMain) {
+//            urlToLoad.addQueryItem("rq", currentKeyWord.second);
+//        } else {
+//            urlToLoad.addQueryItem("rq", currentKeyWord.first);
+//        }
+//        view->load(urlToLoad);
         view->load(url);
         keyWordEdit->setEnabled(false);
     }
@@ -228,26 +240,23 @@ void Browser::startSearch()
        qDebug() << "not set in config.ini set " << url <<" into file";
        searchEngineKey = "default";
    }
-   QString mainKeyWord = currentKeyWord.first;
-   keyWordEdit->setText(mainKeyWord);
-   queryOneWord();
-   QString assistWord = currentKeyWord.second;
-   keyWordEdit->setText(assistWord);
-   queryOneWord();
-   startHrefClick();
+    queryMainWord();
 }
-void Browser::queryOneWord()
+void Browser::queryMainWord()
 {
-    QTimer mTimer;
-    QEventLoop loop;
-    mTimer.setSingleShot(true);
-    connect(&mTimer, SIGNAL(timeout()), &loop, SLOT(quit()));
+    isQueryMain = true;
+    QString mainKeyWord = currentKeyWord.first;
+    keyWordEdit->setText(mainKeyWord);
     startFillKeyWord();
-    mTimer.start(1000);
-    loop.exec();
-    startSubmit();
-    mTimer.start(4000);
-    startHrefClick();
+    QTimer::singleShot(1000, this, SLOT(startSubmit()));
+}
+void Browser::queryAssitWord()
+{
+    isQueryMain = false;
+    QString assistWord = currentKeyWord.second;
+    keyWordEdit->setText(assistWord);
+    startFillKeyWord();
+    QTimer::singleShot(1000, this, SLOT(startSubmit()));
 }
 
 void Browser::startFillKeyWord()
@@ -256,7 +265,6 @@ void Browser::startFillKeyWord()
     QString keyWord = keyWordEdit->text();
     QWebElement element = view->page()->mainFrame()->findFirstElement(textSelecter);
     element.setAttribute("value", keyWord);
-    //QTimer::singleShot(1000, this, SLOT(startSubmit()));
 }
 
 void Browser::startSubmit()
@@ -266,7 +274,8 @@ void Browser::startSubmit()
     qDebug() << element.geometry().center();
     QPoint elemPos = element.geometry().center();
     buttonClick(elemPos);
-   // QTimer::singleShot(4000, this, SLOT(startHrefClick()));
+    if (isQueryMain) QTimer::singleShot(4000, this, SLOT(queryAssitWord()));
+    else QTimer::singleShot(4000, this, SLOT(startHrefClick()));
 }
 
 void Browser::startHrefClick()
@@ -291,14 +300,15 @@ void Browser::baseHrefClick(const QString &lickItemSelector)
     currentLinkName = element.toPlainText();
     currentLinkUrl = element.attribute("href", "null");
     QWebFrame* frame = view->page()->mainFrame();
-    qDebug() << element.toPlainText();
+//    qDebug() << element.toPlainText();
     const QPoint elemPos=element.geometry().center();
     QPoint scrollPosition = QPoint(0, elemPos.y() - 100);
     frame->setScrollPosition(scrollPosition);
     QPoint const scrollPos=frame->scrollPosition();
 
-    buttonClick(elemPos-scrollPos);
     shouldBack = true;
+    buttonClick(elemPos-scrollPos);
+    hrefTimer->start(5000);
 }
 
 void Browser::buttonClick(const QPoint& pos)
@@ -444,4 +454,13 @@ Browser::~Browser()
 {
     delete mutex;
     delete list;
+}
+
+QPair<QString, QString>& Browser::getCurrentKeyWord()
+{
+    return currentKeyWord;
+}
+bool Browser::getQueryState()
+{
+    return this->isQueryMain;
 }

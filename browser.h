@@ -22,6 +22,8 @@ public:
     explicit Browser(QWidget *parent = 0);
     explicit Browser(QWidget* parent = 0, int id = 0);
     void search(const QList<ClickInfo>& clickInfos);
+    QPair<QString, QString>& getCurrentKeyWord();
+    bool getQueryState();
     ~Browser();
 signals:
      void searchFinished();
@@ -50,6 +52,8 @@ protected slots:
      void startHrefClick();
      void onSearchFinished();
      void checkIfLoadFinished();
+     void queryMainWord();
+     void queryAssitWord();
 private:
      void init();
      void buttonClick(const QPoint& pos);
@@ -57,7 +61,7 @@ private:
      void baseHrefClick(const QString& lickItemSelector);
      void checkAndEmitRealtimeInfo();
      void initConfig();
-     void queryOneWord();
+
 
  private:
      QString jQuery;
@@ -85,11 +89,13 @@ private:
 
      bool isStop;
      bool searchFlag;
+     bool isQueryMain;
      //engine config map
      QMap<QString, EngineConfig> engineConfigMap;
      QString searchEngineKey;
 
      QTimer* timer;
+     QTimer* hrefTimer;
 
      //id
      int id;
