@@ -21,7 +21,7 @@ JobParamDialog::JobParamDialog(QWidget *parent) :
     threadNumLabel = new QLabel(tr("线程数"), this);
     threadNumValue = new QSpinBox(this);
     threadNumValue->setMinimum(1);
-    threadNumValue->setMaximum(10);
+    threadNumValue->setMaximum(100);
     layout2->addWidget(threadNumLabel);
     layout2->addWidget(threadNumValue);
 
