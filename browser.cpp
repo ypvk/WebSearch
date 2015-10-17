@@ -298,8 +298,8 @@ void Browser::baseHrefClick(const QString &lickItemSelector)
     QPoint const scrollPos=frame->scrollPosition();
 
     shouldBack = true;
-    buttonClick(elemPos-scrollPos);
-    hrefTimer->start(3000);
+    //buttonClick(elemPos-scrollPos);
+    hrefTimer->start(300);
 }
 
 void Browser::buttonClick(const QPoint& pos)
