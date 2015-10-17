@@ -94,8 +94,8 @@ void Browser::init()
     //set href timer
     hrefTimer = new QTimer(this);
     hrefTimer->setSingleShot(true);
-    connect(hrefTimer, SIGNAL(timeout()), this, SIGNAL(searchFinished()));
-    connect(view, SIGNAL(loadFinished(bool)), hrefTimer, SLOT(stop()));
+//    connect(hrefTimer, SIGNAL(timeout()), this, SIGNAL(searchFinished()));
+    connect(hrefTimer, SIGNAL(timeout()), this, SLOT(onLinkTimeOut()));
 }
 
 Browser::Browser(QWidget *parent) :
@@ -183,23 +183,16 @@ void Browser::openLink(const QUrl &url)
 
 void Browser::loadUrl(const QUrl &url)
 {
-    hrefTimer->stop();//stop timer
-//    QUrl urlToLoad(url);
+//    if (shouldBack) hrefTimer->stop();//stop timer link url
+////    QUrl urlToLoad(url);
     if (!url.toString().contains("search.yahoo.com"))
     {
-//        //add rq param
-//        if (isQueryMain) {
-//            urlToLoad.addQueryItem("rq", currentKeyWord.second);
-//        } else {
-//            urlToLoad.addQueryItem("rq", currentKeyWord.first);
-//        }
-//        view->load(urlToLoad);
         view->load(url);
         keyWordEdit->setEnabled(false);
     }
-    if (shouldBack) {
-        QTimer::singleShot(2000, this, SLOT(onLinkTimeOut()));
-    }
+//    if (shouldBack) {//is link
+//        QTimer::singleShot(2000, this, SLOT(onLinkTimeOut()));
+//    }
 }
 
 void Browser::onTabTimeOut()
@@ -219,8 +212,6 @@ void Browser::onTabTimeOut()
 
 void Browser::onLinkTimeOut()
 {
-//    view->back();//don't back
-//  CommonUtils::sleep(3000);
     searchFlag = false;
     shouldBack = false;
     //set before stop
@@ -308,7 +299,7 @@ void Browser::baseHrefClick(const QString &lickItemSelector)
 
     shouldBack = true;
     buttonClick(elemPos-scrollPos);
-    hrefTimer->start(5000);
+    hrefTimer->start(3000);
 }
 
 void Browser::buttonClick(const QPoint& pos)
