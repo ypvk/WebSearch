@@ -54,6 +54,11 @@ void customMessageHandler(QtMsgType type, const char *msg)
 }
 int main(int argc, char *argv[])
 {
+    //for qsettings
+    QCoreApplication::setOrganizationName("MySoft");
+    QCoreApplication::setOrganizationDomain("mysoft.com");
+    QCoreApplication::setApplicationName("WebSearch");
+    //for qDebug
     qInstallMsgHandler(customMessageHandler);
     QApplication a(argc, argv);
     //init codec

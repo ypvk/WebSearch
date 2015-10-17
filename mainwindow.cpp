@@ -192,9 +192,10 @@ void MainWindow::onJobFinished()
     }
     browsers.clear();
     finishedIds.clear();
+    qDebug() << "finished query: " << this->clickNum;
     this->clickNum = this->clickNum - 1;
     if (this->clickNum != 0) {
-        this->sleep(300000);
+        this->sleep(120000);
         runSearchJob(threadNum);
     }
 }
