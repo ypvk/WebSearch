@@ -1,5 +1,6 @@
 #include "commonutils.h"
 #include <QtGui>
+#include <ctime>
 #include <QtNetwork>
 
 CommonUtils::CommonUtils()
