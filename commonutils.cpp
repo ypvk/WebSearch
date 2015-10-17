@@ -70,6 +70,7 @@ bool CommonUtils::isClearCookie()
 {
     QSettings *configIniRead = new QSettings("config.ini", QSettings::IniFormat);
     QString isClear = configIniRead->value("cookie/is_clear").toString().toLower();
+    delete configInitRead;
     if (isClear == "true")
     {
         return true;
