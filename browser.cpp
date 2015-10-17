@@ -411,6 +411,7 @@ void Browser::checkAndEmitRealtimeInfo()
         currentClickNum++;
         int clickNum = clickInfos.first().getClickNum();
         int totalClickNum = clickNum * clickInfos.first().getKeyWords().count() * clickInfos.first().getProxys().count();
+        if (totalClickNum == 0) totalClickNum = 1;
         qDebug() << "clickNum:" << currentClickNum;
         qDebug() << "totalCliclNum:" << totalClickNum;
         if (currentClickNum == totalClickNum)

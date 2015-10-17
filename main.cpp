@@ -7,11 +7,54 @@
 #include "browser.h"
 #include "dbutil.h"
 #include "commonutils.h"
+#include <QtCore>
+#include <QtGui>
+#include <QtDebug>
+#include <QFile>
+#include <QTextStream>
 
 //#define FIRST_INIT
+void customMessageHandler(QtMsgType type, const char *msg)
+{
+    static QMutex mutex;
+    mutex.lock();
 
+    QString text;
+    switch(type)
+    {
+    case QtDebugMsg:
+        text = QString("Debug:");
+        break;
+
+    case QtWarningMsg:
+        text = QString("Warning:");
+        break;
+
+    case QtCriticalMsg:
+        text = QString("Critical:");
+        break;
+
+    case QtFatalMsg:
+        text = QString("Fatal:");
+    }
+
+    QString current_date_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+    QString current_date = QString("(%1)").arg(current_date_time);
+    QString message = QString("%1 %2 %3").arg(text).arg(current_date).arg(msg);
+
+    QFile file("log.txt");
+    file.open(QIODevice::WriteOnly | QIODevice::Append);
+    QTextStream text_stream(&file);
+    text_stream.setCodec(QTextCodec::codecForName("System"));
+    text_stream << message << "\r\n";
+    file.flush();
+    file.close();
+
+    mutex.unlock();
+}
 int main(int argc, char *argv[])
 {
+    qInstallMsgHandler(customMessageHandler);
     QApplication a(argc, argv);
     //init codec
     QTextCodec *utg8TC = QTextCodec::codecForName("utf-8");
