@@ -13,6 +13,8 @@ public:
     static QString getMyIp();
     static QMap<QString, EngineConfig> getEngineConfigs();
     static bool isClearCookie();
+    static int getIpClickTimes();
+    static QString getConfig(const QString& key);
 private:
     CommonUtils();
 };

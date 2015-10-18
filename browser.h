@@ -100,6 +100,7 @@ private:
      //id
      int id;
      bool isClearCookie;
+     int ipClickTimes;
 };
 
 #endif // BROWSER_H

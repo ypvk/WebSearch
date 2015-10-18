@@ -337,7 +337,11 @@ void Browser::onSearchFinished()
 {
     timer->stop();
     checkAndEmitRealtimeInfo();
-    if (this->isClearCookie)  clearCookie();
+    if (this->isClearCookie)  {
+        qDebug() << "is clear cookie";
+        clearCookie();
+        this->isClearCookie = false;
+    }
     if (isStop || clickInfos.isEmpty())
     {
         isStop = true;
@@ -369,7 +373,7 @@ void Browser::onSearchFinished()
     }
     else
     {
-        int index = currentClickNum % proxys.count();
+        int index = (currentClickNum / this->ipClickTimes) % proxys.count();
         QString hostname = proxys.at(index).first;
         int port = proxys.at(index).second;
         qDebug() << "use proxy->" << hostname << ":" << port;
@@ -400,12 +404,17 @@ void Browser::checkAndEmitRealtimeInfo()
                               currentLinkUrl,
                               currentIp);
         currentClickNum++;
+        if (currentLinkUrl.isEmpty())
+        {//if currentLinkUrl is empty() step over next proxy
+            currentClickNum = (currentClickNum / this->ipClickTimes + 1) * this->ipClickTimes;
+        }
         int clickNum = clickInfos.first().getClickNum();
-        int totalClickNum = clickNum * clickInfos.first().getKeyWords().count() * clickInfos.first().getProxys().count();
+        int totalClickNum = clickNum * clickInfos.first().getKeyWords().count() * clickInfos.first().getProxys().count() * this->ipClickTimes;
         if (totalClickNum == 0) totalClickNum = 1;
+        if (currentClickNum % this->ipClickTimes == 0) this->isClearCookie = true;
         qDebug() << "clickNum:" << currentClickNum;
         qDebug() << "totalCliclNum:" << totalClickNum;
-        if (currentClickNum == totalClickNum)
+        if (currentClickNum >= totalClickNum)
         {
             //if currentClickNum == totalClickNum clickInfos should move next
             clickInfos.removeFirst();
@@ -441,6 +450,8 @@ void Browser::initConfig()
     qDebug() << engineConfigMap.keys();
     this->isClearCookie = CommonUtils::isClearCookie();
     qDebug() << "is clear cookie:" << this->isClearCookie;
+    this->ipClickTimes = CommonUtils::getIpClickTimes();
+    qDebug() << "get ip clicktimes:" << this->ipClickTimes;
 //    qDebug() << engineConfigMap["default"].hrefLink;
 }
 

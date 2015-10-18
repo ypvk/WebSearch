@@ -78,3 +78,17 @@ bool CommonUtils::isClearCookie()
     else return false;
 
 }
+QString CommonUtils::getConfig(const QString &key)
+{
+    QSettings *configIniRead = new QSettings("config.ini", QSettings::IniFormat);
+    QString value = configIniRead->value(key).toString();
+    delete configIniRead;
+    return value;
+}
+int CommonUtils::getIpClickTimes()
+{
+    QString key = "config/ipClickTimes";
+    QString value = getConfig(key);
+    if (value.isEmpty()) return 0;
+    else return value.toInt();
+}
