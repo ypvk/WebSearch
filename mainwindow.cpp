@@ -204,7 +204,7 @@ void MainWindow::onJobFinished()
     qDebug() << "finished query: " << this->clickNum;
     this->clickNum = this->clickNum - 1;
     if (this->clickNum != 0) {
-        this->sleep(120000);
+//        this->sleep(120000);
         runSearchJob(threadNum);
     }
 }
@@ -337,6 +337,7 @@ void MainWindow::queryProxys(const QString& url)
         networkManager->setNetworkAccessible(QNetworkAccessManager::NotAccessible);
         qDebug() << "timeout";
     }
+    reply->deleteLater();
 }
 
 void MainWindow::sleep(long time)

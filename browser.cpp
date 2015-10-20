@@ -404,10 +404,10 @@ void Browser::checkAndEmitRealtimeInfo()
                               currentLinkUrl,
                               currentIp);
         currentClickNum++;
-        if (currentLinkUrl.isEmpty())
-        {//if currentLinkUrl is empty() step over next proxy
-            currentClickNum = (currentClickNum / this->ipClickTimes + 1) * this->ipClickTimes;
-        }
+//        if (currentLinkUrl.isEmpty())
+//        {//if currentLinkUrl is empty() step over next proxy
+//            currentClickNum = (currentClickNum / this->ipClickTimes + 1) * this->ipClickTimes;
+//        }
         int clickNum = clickInfos.first().getClickNum();
         int totalClickNum = clickNum * clickInfos.first().getKeyWords().count() * clickInfos.first().getProxys().count() * this->ipClickTimes;
         if (totalClickNum == 0) totalClickNum = 1;
