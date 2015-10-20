@@ -12,10 +12,15 @@
 #include <QtDebug>
 #include <QFile>
 #include <QTextStream>
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include "networkcookiejar.h"
 
 //#define FIRST_INIT
 
 void customMessageHandler(QtMsgType type, const char *msg);
+void testGetRequest();
 
 int main(int argc, char *argv[])
 {
@@ -24,7 +29,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationDomain("mysoft.com");
     QCoreApplication::setApplicationName("WebSearch");
     //for qDebug
-    qInstallMsgHandler(customMessageHandler);
+//    qInstallMsgHandler(customMessageHandler);
     QApplication a(argc, argv);
     //init codec
     QTextCodec *utg8TC = QTextCodec::codecForName("utf-8");
@@ -43,7 +48,39 @@ int main(int argc, char *argv[])
 #endif
     MainWindow w;
     w.show();
+    testGetRequest();
     return a.exec();
+}
+
+void testGetRequest()
+{
+    QString url = "http://m.baidu.com/s?word=abc&ts=1223145&rq=ab";
+    QNetworkAccessManager* networkAccessManager = new QNetworkAccessManager();
+    QNetworkRequest request;
+    request.setUrl(QUrl(url));
+//    request.setRawHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
+//    request.setRawHeader("Accept-Encoding", "gzip, deflate, sdch");
+//    request.setRawHeader("Accept-Language", "h-CN,zh;q=0.8");
+//    request.setRawHeader("Host", "m.baidu.com");
+//    request.setRawHeader("Referer", "http://m.baidu.com");
+//    request.setRawHeader("Connection", "keep-alive");
+    request.setRawHeader("User-Agent", "MQQBrowser/26 Mozilla/5.0 (Linux; U; Android 2.3.7; zh-cn; MB200 Build/GRJ22; CyanogenMod-7) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1");
+    QNetworkReply* reply = networkAccessManager->get(request);
+    QEventLoop loop;
+    NetWorkCookieJar* cookieJar = new NetWorkCookieJar(networkAccessManager);
+    networkAccessManager->setCookieJar(cookieJar);
+    QTimer timer;
+    timer.setSingleShot(true);
+    QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
+    QObject::connect(&timer, SIGNAL(timeout()), &loop, SLOT(quit()));
+    timer.start(5000);
+    loop.exec();
+    timer.stop();
+    qDebug() << request.rawHeaderList();
+    qDebug() << reply->readAll();
+    qDebug() << cookieJar->getCookies();
+    networkAccessManager->deleteLater();
+    reply->deleteLater();
 }
 
 void customMessageHandler(QtMsgType type, const char *msg)
