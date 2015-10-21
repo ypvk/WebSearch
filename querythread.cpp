@@ -17,13 +17,11 @@ QueryThread::QueryThread(QObject *parent, const QList<ClickInfo> &clickInfos, in
 }
 QueryThread::~QueryThread()
 {
-    delete this->networkManager;
-    delete this->cookieJar;
-    delete this->timer;
 }
 
 void QueryThread::run()
 {
+    qRegisterMetaType<UpdateInfo>("UpdateInfo");
     this->networkManager = new QNetworkAccessManager();
     this->cookieJar = new NetWorkCookieJar(NULL);
     this->networkManager->setCookieJar(this->cookieJar);
@@ -37,11 +35,16 @@ void QueryThread::run()
         for(int j = 0; j < proxys.count(); j++) {
             QString hostname = proxys.at(j).first;
             int port = proxys.at(j).second;
+//            //-------------------
+//            QString currentIp = CommonUtils::getMyIp();
+//            hostname = currentIp;
+//            //-------------------
             qDebug() << "use proxy->" << hostname << ":" << port;
             QNetworkProxy proxy;
             proxy.setType(QNetworkProxy::HttpProxy);
             proxy.setHostName(hostname);
             proxy.setPort(port);
+//            proxy.setType(QNetworkProxy::NoProxy);
             this->networkManager->setProxy(proxy);
             lastUrl = "";
             //clear cookie
@@ -62,7 +65,7 @@ void QueryThread::run()
                                 << " not accessable, current times:" << k;
                         break;
                     }
-                    this->sleep(2000);
+                    this->sleep(3);
                     resultCode = this->queryWord(keyWord.second, keyWord.first, request, hostname);
                     if (resultCode == 1) {
                         qDebug() << "thread:" << id
@@ -80,6 +83,9 @@ void QueryThread::run()
             }
         }
     }
+    delete this->networkManager;
+    delete this->cookieJar;
+    delete this->timer;
 }
 int QueryThread::queryWord(QString mainWord, QString assistWord, QNetworkRequest &request, QString currentIp)
 {
@@ -96,6 +102,7 @@ int QueryThread::queryWord(QString mainWord, QString assistWord, QNetworkRequest
     QObject::connect(timer, SIGNAL(timeout()), &loop, SLOT(quit()));
     timer->start(3000);
     loop.exec();
+//    this->sleep(3);
     if (reply->isFinished())
     {
         if (reply->error() == QNetworkReply::NoError)
@@ -121,7 +128,7 @@ int QueryThread::queryWord(QString mainWord, QString assistWord, QNetworkRequest
             resultCode = 1;
         }
     } else {
-        if (this->networkManager->networkAccessible() == QNetworkAccessManager::NotAccessible) resultCode = 2;
+        if (this->networkManager->networkAccessible() != QNetworkAccessManager::Accessible) resultCode = 2;
     }
     reply->deleteLater();
     return resultCode;

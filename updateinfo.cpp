@@ -1,8 +1,7 @@
 #include "updateinfo.h"
 #include <QString>
 
-UpdateInfo::UpdateInfo(QObject *parent) : QObject(parent)
-{
+UpdateInfo::UpdateInfo(){
 
 }
 
