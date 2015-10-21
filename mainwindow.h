@@ -18,6 +18,7 @@ class Browser;
 class UpdateInfo;
 class ConfigDialog;
 class QNetworkAccessManager;
+class QueryThread;
 
 class MainWindow : public QMainWindow
 {
@@ -44,6 +45,7 @@ public slots:
     void onJobFinishedById(int id);
     void onDeleteSelectedButtonClicked();
     void onDeleteAllButtonClicked();
+    void onTheadFinished();
 private:
     Ui::MainWindow *ui;
 
@@ -82,6 +84,7 @@ private:
     QNetworkAccessManager* networkManager;
     QList<QPair<QString, int> > proxys;
     QList<Browser*> browsers;
+    QList<QueryThread*> threads;
 
     int clickNum;
     int threadNum;

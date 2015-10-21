@@ -7,6 +7,7 @@
 #include "configdialog.h"
 #include "engineinfo.h"
 #include "aboutdialog.h"
+#include "querythread.h"
 #include <QtGui/QLineEdit>
 #include <QtGui/QPushButton>
 #include <QtWebKit/QWebView>
@@ -199,6 +200,11 @@ void MainWindow::onJobFinished()
     foreach(Browser* browser, browsers)  {
         delete browser;
     }
+    //delete thread
+    foreach(QueryThread* queryThread, threads) {
+        queryThread->deleteLater();
+    }
+    threads.clear();
     browsers.clear();
     finishedIds.clear();
     qDebug() << "finished query: " << this->clickNum;
@@ -222,6 +228,15 @@ void MainWindow::onJobFinishedById(int id)
 //    delete browser;
 //    if (browsers.isEmpty())
 //        this->onJobFinished();
+}
+void MainWindow::onTheadFinished()
+{
+    finishedIds.append(1);
+    if (finishedIds.count() == browsers.count())
+    {
+        finishedIds.clear();
+        this->onJobFinished();
+    }
 }
 
 void MainWindow::setupModel()
@@ -284,13 +299,17 @@ void MainWindow::runSearchJob(int threadNum)
         {
             clickInfos << ClickInfo(engineInfos.at(j), keyWords, tmpProxys, 1);
         }
-        Browser* browser = new Browser(NULL, i);
-        connect(browser, SIGNAL(updateClickInfo(UpdateInfo)), this, SLOT(onJobUpdate(UpdateInfo)));
-        connect(browser, SIGNAL(jobFinished(int)), this, SLOT(onJobFinishedById(int)));
-        browser->show();
-        browser->move(this->pos() + QPoint(200, 200));
-        browsers.append(browser);
-        browser->search(clickInfos);
+//        Browser* browser = new Browser(NULL, i);
+//        connect(browser, SIGNAL(updateClickInfo(UpdateInfo)), this, SLOT(onJobUpdate(UpdateInfo)));
+//        connect(browser, SIGNAL(jobFinished(int)), this, SLOT(onJobFinishedById(int)));
+//        browser->show();
+//        browser->move(this->pos() + QPoint(200, 200));
+//        browsers.append(browser);
+//        browser->search(clickInfos);
+        QueryThread* thread = new QueryThread(NULL, clickInfos, i);
+        connect(thread, SIGNAL(updateClickInfo(UpdateInfo)), this, SLOT(onJobUpdate(UpdateInfo)));
+        connect(thread, SIGNAL(finished()), this, SLOT(onTheadFinished()));
+        thread->start();
     }
 }
 

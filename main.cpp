@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 #endif
     MainWindow w;
     w.show();
-    testGetRequest();
+    //testGetRequest();
     return a.exec();
 }
 
@@ -58,13 +58,13 @@ void testGetRequest()
     QNetworkAccessManager* networkAccessManager = new QNetworkAccessManager();
     QNetworkRequest request;
     request.setUrl(QUrl(url));
-//    request.setRawHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
-//    request.setRawHeader("Accept-Encoding", "gzip, deflate, sdch");
-//    request.setRawHeader("Accept-Language", "h-CN,zh;q=0.8");
-//    request.setRawHeader("Host", "m.baidu.com");
-//    request.setRawHeader("Referer", "http://m.baidu.com");
+    request.setRawHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
+    //request.setRawHeader("Accept-Encoding", "gzip, deflate, sdch");
+    request.setRawHeader("Accept-Language", "h-CN,zh;q=0.8");
+    request.setRawHeader("Host", "m.baidu.com");
+    request.setRawHeader("Referer", "http://m.baidu.com");
 //    request.setRawHeader("Connection", "keep-alive");
-    request.setRawHeader("User-Agent", "MQQBrowser/26 Mozilla/5.0 (Linux; U; Android 2.3.7; zh-cn; MB200 Build/GRJ22; CyanogenMod-7) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1");
+    request.setRawHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36");
     QNetworkReply* reply = networkAccessManager->get(request);
     QEventLoop loop;
     NetWorkCookieJar* cookieJar = new NetWorkCookieJar(networkAccessManager);

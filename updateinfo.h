@@ -3,10 +3,14 @@
 
 #include <QString>
 #include <QPair>
+#include <QObject>
 
-class UpdateInfo
+class UpdateInfo : public QObject
 {
+    Q_OBJECT
+
 public:
+    UpdateInfo(QObject *parent = 0);
     UpdateInfo(const QString& engineName, const QString& engineUrl,
                const QPair<QString, QString>& keyWord, const QString& clickName,
                const QString& clickUrl, const QString& ip);
