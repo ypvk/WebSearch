@@ -51,7 +51,7 @@ void QueryThread::run()
             this->clearCookies();
             for(int m = 0; m < keyWords.count(); m++) {
                 const QPair<QString, QString>& keyWord = keyWords.at(m);
-                for(int k = 0; k < 50; k++) {
+                for(int k = 0; k < 20; k++) {
                     int resultCode = this->queryWord(keyWord.first, keyWord.second, request, hostname);
                     if (resultCode == 1) {
                         qDebug() << "thread:" << id
@@ -89,6 +89,7 @@ void QueryThread::run()
 }
 int QueryThread::queryWord(QString mainWord, QString assistWord, QNetworkRequest &request, QString currentIp)
 {
+    qDebug() << this->cookieJar->getCookies();
     QString hostName = "m.baidu.com";
     qDebug() << "thread: " << id << " query: " << mainWord << " " << assistWord;
     QEventLoop loop;
@@ -122,6 +123,7 @@ int QueryThread::queryWord(QString mainWord, QString assistWord, QNetworkRequest
                                   currentLinkUrl,
                                   currentIp);
             emit updateClickInfo(updateInfo);
+            this->updateCookie();
         }
         else
         {
@@ -147,12 +149,43 @@ void QueryThread::setRequestHeader(QNetworkRequest &request, QString host, QStri
     request.setRawHeader("Accept-Language", "h-CN,zh;q=0.8");
     request.setRawHeader("Host", host.toLocal8Bit());
     request.setRawHeader("Referer", refer.toLocal8Bit());
+    request.setRawHeader("Connection", "keep-alive");
 }
 
 QString QueryThread::buildUrl(QString mainWord, QString assistWord)
 {
     int randTs = CommonUtils::rand(1223145) + 100000;
-    QString url = QString("http://m.baidu.com/s?word=%1&ts=%2&rq=%3").arg(mainWord).arg(randTs).arg(assistWord);
+    QString url = QString("http://m.baidu.com/s?word=%1&sa=tb&ts=%2&rq=%3").arg(mainWord).arg(randTs).arg(assistWord);
     qDebug() << "get url :" << url;
     return url;
+}
+/**
+  * update cookie for BIDUPSID
+  */
+void QueryThread::updateCookie()
+{
+    QList<QNetworkCookie> cookies = this->cookieJar->getCookies();
+    if(cookies.isEmpty()) return;
+    QString baiduid = "";
+    QString bidupsid = "";
+    QDateTime expireDate;
+    foreach(QNetworkCookie cookie, cookies)
+    {
+        if (cookie.name() == "BAIDUID") {
+            baiduid = cookie.value();
+            expireDate = cookie.expirationDate();
+        }
+        if (cookie.name() == "BIDUPSID") bidupsid = cookie.value();
+    }
+    if (baiduid.isEmpty()) return;
+    if (bidupsid.isEmpty())
+    {
+        bidupsid = baiduid.split(":").first();
+        QNetworkCookie cookieSet(QString("BIDUPSID").toLocal8Bit(), bidupsid.toLocal8Bit());
+        cookieSet.setDomain(".baidu.com");
+        cookieSet.setPath("/");
+        cookieSet.setExpirationDate(expireDate);
+        cookies.append(cookieSet);
+        this->cookieJar->setCookies(cookies);
+    }
 }
