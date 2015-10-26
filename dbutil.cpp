@@ -266,7 +266,10 @@ bool DBUtil::deleteClicks(const QVariantList &ids)
 bool DBUtil::incWorkClick(const QString &mainKey, const QString& assistKey, const QString &url)
 {
     qDebug() << "inc click times:" << mainKey << " " << assistKey << " " << url;
+    static QMutex mutex;
+    mutex.lock();
     QSqlDatabase db = getDB();
+    db.transaction();
     QSqlQuery query = getQuery(db);
     bool result = query.prepare(EXISTS_CLICK_SQL);
     query.bindValue(0, url);
@@ -275,6 +278,8 @@ bool DBUtil::incWorkClick(const QString &mainKey, const QString& assistKey, cons
     result = query.exec();
     if (!result) {
         printInfo(query, result);
+        db.commit();
+        mutex.unlock();
         return result;
     }
     int count = 0;
@@ -289,6 +294,8 @@ bool DBUtil::incWorkClick(const QString &mainKey, const QString& assistKey, cons
         query.bindValue(3, 1);
         result = query.exec();
         printInfo(query, result);
+        db.commit();
+        mutex.unlock();
         return result;
     }
     else {
@@ -298,6 +305,8 @@ bool DBUtil::incWorkClick(const QString &mainKey, const QString& assistKey, cons
        query.bindValue(2, assistKey);
        result = query.exec();
        printInfo(query, result);
+       db.commit();
+       mutex.unlock();
        return result;
     }
 }

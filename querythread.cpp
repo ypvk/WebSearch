@@ -52,6 +52,7 @@ void QueryThread::run()
             for(int m = 0; m < keyWords.count(); m++) {
                 const QPair<QString, QString>& keyWord = keyWords.at(m);
                 for(int k = 0; k < 20; k++) {
+                    this->sleep(3);
                     int resultCode = this->queryWord(keyWord.first, keyWord.second, request, hostname);
                     if (resultCode == 1) {
                         qDebug() << "thread:" << id
@@ -79,6 +80,9 @@ void QueryThread::run()
                                 << " not accessable, current times:" << k;
                         break;
                     }
+                    qDebug() << "thread:" << id
+                            << " " << hostname
+                            << " recieve data, current times:" << k;
                 }
             }
         }
@@ -103,6 +107,7 @@ int QueryThread::queryWord(QString mainWord, QString assistWord, QNetworkRequest
     QObject::connect(timer, SIGNAL(timeout()), &loop, SLOT(quit()));
     timer->start(3000);
     loop.exec();
+//    reply->waitForReadyRead(3000);
 //    this->sleep(3);
     if (reply->isFinished())
     {
