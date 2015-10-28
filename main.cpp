@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationDomain("mysoft.com");
     QCoreApplication::setApplicationName("WebSearch");
     //for qDebug
-//    qInstallMsgHandler(customMessageHandler);
+  //  qInstallMsgHandler(customMessageHandler);
     QApplication a(argc, argv);
     //init codec
     QTextCodec *utg8TC = QTextCodec::codecForName("utf-8");
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 #endif
     MainWindow w;
     w.show();
-    //testGetRequest();
+    testGetRequest();
     return a.exec();
 }
 
@@ -63,7 +63,7 @@ void testGetRequest()
     request.setRawHeader("Accept-Language", "h-CN,zh;q=0.8");
     request.setRawHeader("Host", "m.baidu.com");
     request.setRawHeader("Referer", "http://m.baidu.com");
-//    request.setRawHeader("Connection", "keep-alive");
+    request.setRawHeader("Connection", "keep-alive");
     request.setRawHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36");
     QNetworkReply* reply = networkAccessManager->get(request);
     QEventLoop loop;

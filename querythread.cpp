@@ -146,6 +146,7 @@ void QueryThread::setRequestHeader(QNetworkRequest &request, QString host, QStri
     //request.setRawHeader("Accept-Encoding", "gzip, deflate, sdch");
     request.setRawHeader("Accept-Language", "h-CN,zh;q=0.8");
     request.setRawHeader("Host", host.toLocal8Bit());
+    request.setRawHeader("Connection", "keep-alive");
     request.setRawHeader("Referer", refer.toLocal8Bit());
 }
 
