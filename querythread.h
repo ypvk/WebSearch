@@ -25,6 +25,7 @@ private:
     void setRequestHeader(QNetworkRequest& request, QString host, QString refer);
     QString buildUrl(QString mainWord, QString assistWord);
     int queryWord(QString mainWord, QString assistWord, QNetworkRequest& request, QString currentIp);
+    void updateCookie();
 public:
     void run();
 private:
