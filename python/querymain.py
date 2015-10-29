@@ -87,6 +87,7 @@ def query_main(threadnum, times, mainKeyWord, assitKeyWord):
             total_proxys = get_proxys(PROXY_URL)
         except Exception, e:
           print e
+          time.sleep(60)
           continue
         j = 0
         while len(total_proxys) > 0: 
@@ -99,6 +100,7 @@ def query_main(threadnum, times, mainKeyWord, assitKeyWord):
             if j == threadnum:
                 for thread in threads:
                     thread.join()
+                threads = []
                 j = 0
         #sleep 3 min
         time.sleep(180)
