@@ -10,7 +10,7 @@ import threading
 URL_BASE = "http://m.baidu.com"
 HOST = "m.baidu.com"
 null_proxy_handler = urllib2.ProxyHandler({})
-PROXY_URL="http://vxer.daili666api.com/ip/?tid=555611790381221&num=80&delay=1"
+PROXY_URL="http://vxer.daili666api.com/ip/?tid=555611790381221&num=800&delay=1"
 
 class QueryThread(threading.Thread):
 	"""
@@ -61,35 +61,44 @@ class QueryThread(threading.Thread):
 		opener = urllib2.build_opener(self.proxyHandler, self.cookieHandler)
 		request = urllib2.Request(url)
 		request.add_header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
-		request.add_header("User-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1")
+		request.add_header("User-agent", "MQQBrowser/26 Mozilla/5.0 (Linux; U; Android 2.3.7; zh-cn; MB200 Build/GRJ22; CyanogenMod-7) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1")
 		request.add_header("Referer", self.lastUrl)
 		request.add_header("Host", HOST)
-		response = opener.open(request)
+		response = opener.open(request, timeout=3)
 		print "thread: %d url:%s proxy:%s" % (self.index, url, proxy) 
 		print self.cookie
-		print response.read()[:1000].decode("utf-8").encode("gbk", 'ignore')
+		print response.read()[:500].decode("utf-8")
 
 def get_proxys(url):
 	"""
 	get proxys
 	"""
-	response = urllib2.urlopen(url)
-	data = response.readlines()		
+	response = urllib2.urlopen(url, timeout=10)
+	data = response.readlines()
 	return data
 
 def query_main(threadnum, times, mainKeyWord, assitKeyWord):
-	"""
-	query main
-	"""
-	threads = []
-	for i in range(times):
-		total_proxys = get_proxys(PROXY_URL)
-		for j in range(threadnum):
-			if len(total_proxys) > 0: 
-				proxy = total_proxys.pop()
-			thread = QueryThread(j, mainKeyWord, assitKeyWord, "")
-			thread.setDaemon(True)
-			thread.start()
-			threads.append(thread)
-		for thread in threads:
-			thread.join()
+    """
+    query main
+    """
+    threads = []
+    for i in range(times):
+        try:
+            total_proxys = get_proxys(PROXY_URL)
+        except Exception, e:
+          print e
+          continue
+        j = 0
+        while len(total_proxys) > 0: 
+            proxy = total_proxys.pop()
+            thread = QueryThread(j, mainKeyWord, assitKeyWord, proxy)
+            thread.setDaemon(True)
+            thread.start()
+            j = j + 1
+            threads.append(thread)
+            if j == threadnum:
+                for thread in threads:
+                    thread.join()
+                j = 0
+        #sleep 3 min
+        time.sleep(180)
