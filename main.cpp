@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationDomain("mysoft.com");
     QCoreApplication::setApplicationName("WebSearch");
     //for qDebug
-  //  qInstallMsgHandler(customMessageHandler);
+    qInstallMsgHandler(customMessageHandler);
     QApplication a(argc, argv);
     //init codec
     QTextCodec *utg8TC = QTextCodec::codecForName("utf-8");
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 #endif
     MainWindow w;
     w.show();
-    testGetRequest();
+//    testGetRequest();
     return a.exec();
 }
 
