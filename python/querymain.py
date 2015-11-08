@@ -28,6 +28,9 @@ class QueryThread(threading.Thread):
         self.proxyHandler = null_proxy_handler
         self.cookieHandler = urllib2.HTTPCookieProcessor(self.cookie)
         self.lastUrl = ""
+        self.step = self.index % 5  # step is 0 search 2 times stop is 1 search 3 times
+        if self.step > 0:
+            self.step = 1
 
     def run(self):
         proxy = ""
@@ -35,25 +38,60 @@ class QueryThread(threading.Thread):
             proxy = "http://%s" % self.proxy.strip()
         self.cookie.clear()
         for i in range(2):
-            time.sleep(5)
-            url = self.buildUrl(self.mainKeyWord, self.assitKeyWord)
-            try:
-                self.request(url, proxy)
-            except Exception, e:
-                print e
+            result = True
+            if self.step == 0:
+                result = self.searchStep1(proxy)
+            elif self.step == 1:
+                result = self.searchStep(proxy)
+            if not result:
                 break
-            self.lastUrl = url
-            time.sleep(5)
-            url = self.buildUrl(self.assitKeyWord, self.mainKeyWord)
-            try:
-                self.request(url, proxy)
-            except Exception, e:
-                print e
-                break
-            self.lastUrl = url
+
+    def searchStep(self, proxy):
+        url = URL_BASE
+        try:
+            self.request(url, proxy)
+        except Exception, e:
+            print e
+            return False
+        self.lastUrl = url
+        time.sleep(5)
+        url = self.buildUrl(self.mainKeyWord, self.assitKeyWord)
+        try:
+            self.request(url, proxy)
+        except Exception, e:
+            print e
+            return False
+        self.lastUrl = url
+        time.sleep(5)
+        url = self.buildUrl(self.assitKeyWord, self.mainKeyWord)
+        try:
+            self.request(url, proxy)
+        except Exception, e:
+            print e
+            return False
+        time.sleep(5)
+        return True
+
+    def searchStep1(self, proxy):
+        url = URL_BASE
+        try:
+            self.request(url, proxy)
+        except Exception, e:
+            print e
+            return False
+        self.lastUrl = url
+        time.sleep(5)
+        url = self.buildUrl(self.assitKeyWord, self.mainKeyWord)
+        try:
+            self.request(url, proxy)
+        except Exception, e:
+            print e
+            return False
+        time.sleep(5)
+        return True
 
     def buildUrl(self, word1, word2):
-        random_ts = random.randint(1000000, 1500000);	
+        random_ts = random.randint(1000000, 1500000)
         params = {"word": word1, "sa": "tb", "ts": random_ts, "ms": 1, "rq": word2}
         #url =  "%s/from=844b/s?word=%s&sa=tb&ts=%d&ms=1&rq=%s" % (URL_BASE, word1, random_ts, word2)
         url = "%s/from=844b/s?%s" % (URL_BASE, urllib.urlencode(params))
