@@ -37,7 +37,7 @@ class QueryThread(threading.Thread):
         if self.proxy:
             proxy = "http://%s" % self.proxy.strip()
         self.cookie.clear()
-        for i in range(2):
+        for i in range(10):
             result = True
             if self.step == 0:
                 result = self.searchStep1(proxy)
@@ -55,7 +55,7 @@ class QueryThread(threading.Thread):
             return False
         self.lastUrl = url
         time.sleep(5)
-        url = self.buildUrl(self.mainKeyWord, self.assitKeyWord)
+        url = self.buildUrl(self.mainKeyWord, self.assitKeyWord, 'ib')
         try:
             self.request(url, proxy)
         except Exception, e:
@@ -63,7 +63,7 @@ class QueryThread(threading.Thread):
             return False
         self.lastUrl = url
         time.sleep(5)
-        url = self.buildUrl(self.assitKeyWord, self.mainKeyWord)
+        url = self.buildUrl(self.assitKeyWord, self.mainKeyWord, 'tb')
         try:
             self.request(url, proxy)
         except Exception, e:
@@ -81,7 +81,7 @@ class QueryThread(threading.Thread):
             return False
         self.lastUrl = url
         time.sleep(5)
-        url = self.buildUrl(self.assitKeyWord, self.mainKeyWord)
+        url = self.buildUrl(self.assitKeyWord, self.mainKeyWord, 'ib')
         try:
             self.request(url, proxy)
         except Exception, e:
@@ -90,11 +90,14 @@ class QueryThread(threading.Thread):
         time.sleep(5)
         return True
 
-    def buildUrl(self, word1, word2):
-        random_ts = random.randint(1000000, 1500000)
-        params = {"word": word1, "sa": "tb", "ts": random_ts, "ms": 1, "rq": word2}
-        #url =  "%s/from=844b/s?word=%s&sa=tb&ts=%d&ms=1&rq=%s" % (URL_BASE, word1, random_ts, word2)
-        url = "%s/from=844b/s?%s" % (URL_BASE, urllib.urlencode(params))
+    def buildUrl(self, word1, word2, sa):
+        random_ts = random.randint(1500000, 2000000)
+        params = {}
+        if sa == "ib":
+            params = {"word": word1, "sa": "ib", "ts": random_ts, "rq": word2}
+        else:
+            params = {"word": word1, "sa": "tb", "rq": word2}
+        url = "%s/s?%s" % (URL_BASE, urllib.urlencode(params))
         return url
 
     def request(self, url, proxy):
