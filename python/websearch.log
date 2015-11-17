@@ -2182,3 +2182,52 @@
 2015-11-10 02:59:34,885 - querymain.py:136 - websearch - query times:2
 2015-11-10 04:51:23,994 - querymain.py:136 - websearch - query times:3
 2015-11-10 06:41:01,415 - querymain.py:136 - websearch - query times:4
+2015-11-10 21:32:11,082 - main.py:7 - websearch - start
+2015-11-10 21:32:11,083 - querymain.py:136 - websearch - query times:0
+2015-11-10 23:19:39,470 - querymain.py:136 - websearch - query times:1
+2015-11-11 01:01:05,634 - querymain.py:136 - websearch - query times:2
+2015-11-11 02:48:48,389 - querymain.py:136 - websearch - query times:3
+2015-11-11 04:34:37,224 - querymain.py:136 - websearch - query times:4
+2015-11-11 06:22:13,548 - querymain.py:136 - websearch - query times:5
+2015-11-11 21:33:58,945 - main.py:7 - websearch - start
+2015-11-11 21:33:58,946 - querymain.py:136 - websearch - query times:0
+2015-11-11 21:34:14,763 - main.py:7 - websearch - start
+2015-11-11 21:34:14,763 - querymain.py:136 - websearch - query times:0
+2015-11-11 23:20:46,176 - querymain.py:136 - websearch - query times:1
+2015-11-12 01:06:47,730 - querymain.py:136 - websearch - query times:2
+2015-11-12 02:52:56,744 - querymain.py:136 - websearch - query times:3
+2015-11-12 04:42:53,626 - querymain.py:136 - websearch - query times:4
+2015-11-12 06:25:54,917 - querymain.py:136 - websearch - query times:5
+2015-11-12 08:11:03,928 - querymain.py:136 - websearch - query times:6
+2015-11-12 21:57:37,217 - main.py:7 - websearch - start
+2015-11-12 21:57:37,218 - querymain.py:136 - websearch - query times:0
+2015-11-12 23:38:23,104 - main.py:7 - websearch - start
+2015-11-12 23:38:23,104 - querymain.py:140 - websearch - query times:0
+2015-11-12 23:56:54,947 - main.py:7 - websearch - start
+2015-11-12 23:56:54,948 - querymain.py:141 - websearch - query times:0
+2015-11-13 00:42:34,533 - querymain.py:141 - websearch - query times:1
+2015-11-13 01:29:15,480 - querymain.py:141 - websearch - query times:2
+2015-11-13 02:13:51,353 - querymain.py:141 - websearch - query times:3
+2015-11-13 02:59:37,849 - querymain.py:141 - websearch - query times:4
+2015-11-13 03:44:54,894 - querymain.py:141 - websearch - query times:5
+2015-11-13 04:31:15,962 - querymain.py:141 - websearch - query times:6
+2015-11-13 05:17:57,665 - querymain.py:141 - websearch - query times:7
+2015-11-13 06:02:50,411 - querymain.py:141 - websearch - query times:8
+2015-11-13 06:47:59,844 - querymain.py:141 - websearch - query times:9
+2015-11-13 07:33:43,254 - querymain.py:141 - websearch - query times:10
+2015-11-13 19:50:13,941 - main.py:7 - websearch - start
+2015-11-13 19:50:13,941 - querymain.py:141 - websearch - query times:0
+2015-11-13 20:18:10,900 - main.py:7 - websearch - start
+2015-11-13 20:18:10,900 - querymain.py:141 - websearch - query times:0
+2015-11-13 21:00:22,591 - querymain.py:141 - websearch - query times:1
+2015-11-13 21:41:30,250 - querymain.py:141 - websearch - query times:2
+2015-11-13 22:25:16,585 - querymain.py:141 - websearch - query times:3
+2015-11-13 23:07:42,510 - querymain.py:141 - websearch - query times:4
+2015-11-13 23:49:43,484 - querymain.py:141 - websearch - query times:5
+2015-11-13 23:52:20,832 - querymain.py:141 - websearch - query times:5
+2015-11-13 23:53:20,854 - querymain.py:141 - websearch - query times:5
+2015-11-14 00:38:33,025 - querymain.py:141 - websearch - query times:6
+2015-11-14 01:24:50,671 - querymain.py:141 - websearch - query times:7
+2015-11-14 02:12:29,015 - querymain.py:141 - websearch - query times:8
+2015-11-14 03:00:45,336 - querymain.py:141 - websearch - query times:9
+2015-11-14 09:16:06,628 - querymain.py:141 - websearch - query times:10

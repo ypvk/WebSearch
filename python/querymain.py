@@ -18,11 +18,11 @@ class QueryThread(threading.Thread):
     """
     query thread
     """
-    def __init__(self, index, mainKeyWord, assitKeyWord, proxy):
+    def __init__(self, index, mainKeyWord, assitKeyWords, proxy):
         threading.Thread.__init__(self)
         self.index = index
         self.mainKeyWord = mainKeyWord
-        self.assitKeyWord = assitKeyWord
+        self.assitKeyWords = assitKeyWords
         self.proxy = proxy
         self.cookie = cookielib.CookieJar()
         self.proxyHandler = null_proxy_handler
@@ -37,8 +37,9 @@ class QueryThread(threading.Thread):
         if self.proxy:
             proxy = "http://%s" % self.proxy.strip()
         self.cookie.clear()
-        for i in range(10):
+        for i in range(len(self.assitKeyWords)):
             result = True
+            self.assitKeyWord = self.assitKeyWords[i]
             if self.step == 0:
                 result = self.searchStep1(proxy)
             elif self.step == 1:
@@ -55,7 +56,7 @@ class QueryThread(threading.Thread):
             return False
         self.lastUrl = url
         time.sleep(5)
-        url = self.buildUrl(self.mainKeyWord, self.assitKeyWord, 'ib')
+        url = self.buildUrl(self.mainKeyWord, "", 'ib')
         try:
             self.request(url, proxy)
         except Exception, e:
@@ -81,7 +82,7 @@ class QueryThread(threading.Thread):
             return False
         self.lastUrl = url
         time.sleep(5)
-        url = self.buildUrl(self.assitKeyWord, self.mainKeyWord, 'ib')
+        url = self.buildUrl(self.assitKeyWord, "", 'ib')
         try:
             self.request(url, proxy)
         except Exception, e:
@@ -94,9 +95,13 @@ class QueryThread(threading.Thread):
         random_ts = random.randint(1500000, 2000000)
         params = {}
         if sa == "ib":
-            params = {"word": word1, "sa": "ib", "ts": random_ts, "rq": word2}
+            params = {"word": word1, "sa": "ib", "ts": random_ts}
+            if word2:
+                params['rq'] = word2
         else:
-            params = {"word": word1, "sa": "tb", "rq": word2}
+            params = {"word": word1, "sa": "tb"}
+            if word2:
+                params['rq'] = word2
         url = "%s/s?%s" % (URL_BASE, urllib.urlencode(params))
         return url
 
@@ -126,7 +131,7 @@ def get_proxys(url):
 	data = response.readlines()
 	return data
 
-def query_main(threadnum, times, mainKeyWord, assitKeyWord):
+def query_main(threadnum, times, mainKeyWord, assitKeyWords):
     """
     query main
     """
@@ -143,7 +148,7 @@ def query_main(threadnum, times, mainKeyWord, assitKeyWord):
         j = 0
         while len(total_proxys) > 0: 
             proxy = total_proxys.pop()
-            thread = QueryThread(j, mainKeyWord, assitKeyWord, proxy)
+            thread = QueryThread(j, mainKeyWord, assitKeyWords, proxy)
             thread.setDaemon(True)
             thread.start()
             j = j + 1
