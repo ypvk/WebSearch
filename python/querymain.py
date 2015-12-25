@@ -59,18 +59,12 @@ class QueryThread(threading.Thread):
 	def request(self, url, proxy):
 		if proxy:
 			self.proxyHandler = urllib2.ProxyHandler({"http":proxy})
-		proxy_ip = ""
-		if self.proxy:
-			proxy_ip = self.proxy.split(":")[0]
 		opener = urllib2.build_opener(self.proxyHandler, self.cookieHandler)
 		request = urllib2.Request(url)
 		request.add_header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
 		request.add_header("User-agent", "MQQBrowser/26 Mozilla/5.0 (Linux; U; Android 2.3.7; zh-cn; MB200 Build/GRJ22; CyanogenMod-7) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1")
 		request.add_header("Referer", self.lastUrl)
 		request.add_header("Host", HOST)
-		if proxy_id:
-			request.add_header("X-Real-IP", proxy_ip)
-			request.add_header("X-Forwarded-For", proxy_ip)
 		response = opener.open(request, timeout=3)
 		print "thread: %d url:%s proxy:%s" % (self.index, url, proxy) 
 		print self.cookie
